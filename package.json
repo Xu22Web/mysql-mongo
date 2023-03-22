@@ -1,11 +1,13 @@
 {
   "name": "mysql-mongo",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Using MySQL in the way of MongoDB in Nodejs",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
-  "type": "module",
+  "files": [
+    "./dist"
+  ],
   "scripts": {
     "build": "rollup -c rollup.config.js",
     "dev": "nodemon bin/index.ts",
@@ -18,7 +20,15 @@
     "typescript",
     "rollup"
   ],
-  "author": "xu22web",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Xu22Web/mysql-mongo"
+  },
+  "author": {
+    "name": "xu22web",
+    "email": "1627295329@qq.com",
+    "url": "https://github.com/Xu22Web"
+  },
   "license": "MIT",
   "dependencies": {
     "mysql": "^2.18.1"
@@ -37,6 +47,14 @@
     "vitest": "^0.23.4"
   },
   "peerDependencies": {
-    "mysql": "^2.18.1"
+    "@types/mysql": "^2.15.21"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs.js",
+      "import": "./dist/index.es.js"
+    },
+    "./dist/*": "./dist/*"
   }
 }

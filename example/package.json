@@ -2,7 +2,6 @@
   "name": "example",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "test": "ts-node index.ts"
   },
@@ -14,7 +13,7 @@
     "typescript": "^5.0.2"
   },
   "dependencies": {
-    "ts-node": "^10.9.1",
-    "mysql-mongo": "link:.."
+    "mysql-mongo": "^1.0.0",
+    "ts-node": "^10.9.1"
   }
 }
