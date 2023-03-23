@@ -5,10 +5,11 @@ import { SQLJson } from '../sql/sqlGenerator/interface';
  */
 export enum CommandNoneType {
   /**
-   * @description 无类型
+   * @description
    */
   NONE = 'none',
 }
+/**
 /**
  * @description 逻辑操作符
  */
@@ -106,7 +107,7 @@ export type CommandType =
 /**
  * @description 命令模式
  */
-export type CommandMode = 'command' | 'aggregate';
+export type CommandMode = 'command';
 /**
  * @description 命令类型
  */
@@ -129,23 +130,40 @@ export type CommandStringParamType = CommandParamsType<string>;
 /**
  * @description 类命令操作类型
  */
-export type CommandLike = Pick<Command, '$mode' | '$type' | '$value'>;
+export type CommandLike = Partial<CommandProps>;
 /**
- * @description 命令操作符
+ * @description 命令操作属性
  */
-export interface Command {
+export interface CommandProps {
   /**
-   * @description 命令值
+   * @description 命令模式
    */
-  $value: CommandMixParamType[];
+  $mode: CommandMode;
   /**
    * @description 命令类型
    */
   $type: CommandType;
   /**
+   * @description 命令值
+   */
+  $value: CommandMixParamType[];
+}
+/**
+ * @description 命令操作符
+ */
+export interface Command extends CommandLike {
+  /**
    * @description 命令模式
    */
   $mode: CommandMode;
+  /**
+   * @description 命令类型
+   */
+  $type: CommandType | undefined;
+  /**
+   * @description 命令值
+   */
+  $value: CommandMixParamType[] | undefined;
   /**
    * @description 聚合操作
    */
@@ -155,15 +173,15 @@ export interface Command {
    * @param value
    * @param rest
    */
-  and(value: CommandMixParamType[]): Command;
-  and(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
+  and(value: Command[]): Command;
+  and(value: Command, ...rest: Command[]): Command;
   /**
    * @description 逻辑操作符 或
    * @param value
    * @param rest
    */
-  or(value: CommandMixParamType[]): Command;
-  or(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
+  or(value: Command[]): Command;
+  or(value: Command, ...rest: Command[]): Command;
   /**
    * @description 逻辑操作符 非
    * @param value
@@ -174,15 +192,15 @@ export interface Command {
    * @param value
    * @param rest
    */
-  nor(value: CommandMixParamType[]): Command;
-  nor(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
+  nor(value: Command[]): Command;
+  nor(value: Command, ...rest: Command[]): Command;
   /**
    * @description 逻辑操作符 不都
    * @param value
    * @param rest
    */
-  nand(value: CommandMixParamType[]): Command;
-  nand(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
+  nand(value: Command[]): Command;
+  nand(value: Command, ...rest: Command[]): Command;
   /**
    * @description 逻辑操作符 等于
    * @param value

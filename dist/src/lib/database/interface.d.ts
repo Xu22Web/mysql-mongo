@@ -2,7 +2,7 @@ import { Connection, ConnectionConfig, Pool, PoolConfig } from 'mysql';
 import { Collection } from '../collection/interface';
 import { Command } from '../command/interface';
 import { ConnectionController } from '../connectionController/interface';
-import { DatabaseRegExp, DatabaseRegExpLike } from '../sql/sqlCondition/regExp/interface';
+import { RegExpLike, RegExpLikeConfig } from '../sql/sqlCondition/regExpLike/interface';
 import { Transaction } from '../transaction/interface';
 /**
  * @description 数据库配置
@@ -52,12 +52,12 @@ export interface Database<T extends DatabaseType> {
      * @description 构造正则表达式
      * @param regexp
      */
-    RegExp(regexp: DatabaseRegExpLike | RegExp): DatabaseRegExp;
+    RegExp(regexp: RegExpLikeConfig | RegExp): RegExpLike;
     /**
      * @description 获取集合
      * @param name
      */
-    collection<T = any>(name: string): Collection<T>;
+    collection<T extends object = object>(name: string): Collection<T>;
     /**
      * @description 发起事务
      * @param callback

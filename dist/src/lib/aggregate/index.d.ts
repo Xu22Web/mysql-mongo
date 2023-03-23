@@ -2,7 +2,10 @@ import { AggregateKey } from '../aggregateCommand/interface';
 import { Collection, QueryResult, RowData } from '../collection/interface';
 import { SelectGenerator } from '../sql/sqlGenerator/select/interface';
 import { Aggregate, AggregateFields, AggregateFilter, AggregateGroup, AggregateMatch, AggregateProject, AggregateSort, AggregateTask } from './interface';
-declare class MySQLAggregate<T> implements Aggregate<T> {
+/**
+ * @description MySQl 聚合操作
+ */
+declare class MySQLAggregate<T extends object> implements Aggregate<T> {
     $collection: Collection<T>;
     $taskList: AggregateTask[];
     constructor(collection: Collection<T>);
@@ -10,7 +13,7 @@ declare class MySQLAggregate<T> implements Aggregate<T> {
     preTaskList(): Promise<string>;
     addFields(fields: AggregateFields): Aggregate<T>;
     count(fieldName: AggregateKey): Aggregate<T>;
-    end(): Promise<QueryResult<RowData<T[] | []>>>;
+    end(): Promise<QueryResult<RowData<T[]>>>;
     group(group: AggregateGroup): Aggregate<T>;
     skip(skip: number): Aggregate<T>;
     limit(limit: number): Aggregate<T>;

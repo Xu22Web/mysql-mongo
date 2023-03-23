@@ -1,21 +1,18 @@
-import { objectMerge } from '../../../../utils/handler';
-import typeOf from '../../../../utils/typeOf';
-import { DatabeseLike, DatabeseLikeConfig } from './interface';
+import { Like, LikeConfig } from './interface';
 
-class MySQLDatabeseLike implements DatabeseLike {
+/**
+ * @description MySQL 模糊匹配
+ */
+class MySQLLike implements Like {
   $like?: string;
   $options?: string;
   constructor($like?: string, $options?: string) {
     this.$like = $like;
     this.$options = $options;
   }
-  create(like: DatabeseLikeConfig): MySQLDatabeseLike {
-    // 新建对象
-    const databaseLike = new MySQLDatabeseLike();
-    if (typeOf.objStructMatch(like, ['$like', '$options'])) {
-      objectMerge(databaseLike, like);
-    }
-    return databaseLike;
+  create({ $like, $options }: LikeConfig): MySQLLike {
+    return new MySQLLike($like, $options);
   }
 }
-export default MySQLDatabeseLike;
+
+export default MySQLLike;

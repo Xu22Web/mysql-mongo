@@ -8,7 +8,7 @@ import {
   SQLOrderBy,
   SQLRecord,
   SQLTypes,
-  SQLWhere
+  SQLWhere,
 } from '../interface';
 import { UpdateClipName, UpdateGenerator, UpdatePropValue } from './interface';
 
@@ -135,29 +135,28 @@ class MySQLUpdateGenerator implements UpdateGenerator {
     // 属性值
     const { $name, $where, $orderby, $limit, $record } = this;
     // 存在集合名
-    if (typeOf.isNotBlankStr($name)) {
-      // 筛选片段
-      const whereClip = sqlClip.whereClip($where);
-      // 排序片段
-      const orderByClip = sqlClip.orderByClip($orderby);
-      // 限制条数片段
-      const limitClip = sqlClip.limitClip($limit);
-      // 集合名
-      const nameClip = sqlClip.nameClip($name);
-      // 记录
-      const recordClip = sqlClip.recordClip($record);
-      // sql
-      const sql = `update${nameClip}${recordClip}${whereClip}${orderByClip}${limitClip}`;
-
-      return sql;
+    if (!typeOf.isNotBlankStr($name)) {
+      // 报错：SQLGENERATOR_PROPERTY_ERROR
+      throw errHandler.createError(
+        MySQLErrorType.SQLGENERATOR_PROPERTY_ERROR,
+        `In class 'MySQLUpdateGenerator', don't exist property '$name'!`
+      );
     }
-    // 报错：SQLGENERATOR_PROPERTY_ERROR
-    throw errHandler.createError(
-      MySQLErrorType.SQLGENERATOR_PROPERTY_ERROR,
-      `In class 'MySQLUpdateGenerator', don't exist property '$name'!`
-    );
+    // 筛选片段
+    const whereClip = sqlClip.whereClip($where);
+    // 排序片段
+    const orderByClip = sqlClip.orderByClip($orderby);
+    // 限制条数片段
+    const limitClip = sqlClip.limitClip($limit);
+    // 集合名
+    const nameClip = sqlClip.nameClip($name);
+    // 记录
+    const recordClip = sqlClip.recordClip($record);
+    // sql
+    const sql = `update${nameClip}${recordClip}${whereClip}${orderByClip}${limitClip}`;
+
+    return sql;
   }
 }
 
 export { MySQLUpdateGenerator };
-

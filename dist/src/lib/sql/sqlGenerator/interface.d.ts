@@ -82,7 +82,7 @@ export type SQLName = string;
  * @description 筛选
  */
 export type SQLWhere = {
-    [key: string]: number | string | boolean | SQLJson | RegExp | SQLRegex | SQLLike | CommandLike | null | undefined;
+    [key: string]: number | string | boolean | SQLJson | RegExp | SQLRegex | SQLLike | CommandLike | AggregateCommandLike | null | undefined;
 };
 /**
  * @description 分组

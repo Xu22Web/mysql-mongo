@@ -1,162 +1,161 @@
-import { AggregateAccumulationType, AggregateArrayParamType, AggregateBooleanNegativeType, AggregateBooleanSimpleType, AggregateCalculationFunctionType, AggregateCalculationSimpleType, AggregateCommand, AggregateCommandLike, AggregateCommandMode, AggregateCommandType, AggregateCompareFilterType, AggregateCompareSimpleType, AggregateConditionType, AggregateJsonType, AggregateMixParamType, AggregateNumberParamType, AggregateObjectParamType, AggregateSeachOptions, AggregateStringParamType, AggregateStringType } from './interface';
-declare class MySQLAggregateCommand<K extends object = object, T extends AggregateCommandType = any, V extends (AggregateMixParamType<K> | AggregateMixParamType<K>[] | AggregateSeachOptions)[] = any> implements AggregateCommand<K, T, V> {
+import { AggregateArrayParamType, AggregateCommand, AggregateCommandLike, AggregateCommandMode, AggregateCommandType, AggregateMixParamType, AggregateNumberParamType, AggregateObjectParamType, AggregateSeachOptions, AggregateStringParamType } from './interface';
+/**
+ * @description MySQl 聚合命令
+ */
+declare class MySQLAggregateCommand<T extends object = object> implements AggregateCommand<T> {
     $mode: AggregateCommandMode;
-    $type: T | undefined;
-    $value: V | undefined;
-    constructor(value?: V, type?: T);
+    $type: AggregateCommandType | undefined;
+    $value: (AggregateMixParamType<T> | AggregateMixParamType<T>[] | AggregateSeachOptions)[] | undefined;
+    constructor(value?: (AggregateMixParamType<T> | AggregateMixParamType<T>[] | AggregateSeachOptions)[], type?: AggregateCommandType);
     and<P extends [
-        AggregateMixParamType<K>,
-        AggregateMixParamType<K>,
-        ...AggregateMixParamType<K>[]
-    ]>(...values: P): AggregateCommand<K, AggregateBooleanSimpleType.AND, P>;
+        AggregateMixParamType<T>,
+        AggregateMixParamType<T>,
+        ...AggregateMixParamType<T>[]
+    ]>(...values: P): AggregateCommand<T>;
     or<P extends [
-        AggregateMixParamType<K>,
-        AggregateMixParamType<K>,
-        ...AggregateMixParamType<K>[]
-    ]>(...values: P): AggregateCommand<K, AggregateBooleanSimpleType.OR, P>;
-    not<P extends [AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateBooleanNegativeType.NOT, P>;
+        AggregateMixParamType<T>,
+        AggregateMixParamType<T>,
+        ...AggregateMixParamType<T>[]
+    ]>(...values: P): AggregateCommand<T>;
+    not<P extends [AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
     nor<P extends [
-        AggregateMixParamType<K>,
-        AggregateMixParamType<K>,
-        ...AggregateMixParamType<K>[]
-    ]>(...values: P): AggregateCommand<K, AggregateBooleanNegativeType.NOR, P>;
+        AggregateMixParamType<T>,
+        AggregateMixParamType<T>,
+        ...AggregateMixParamType<T>[]
+    ]>(...values: P): AggregateCommand<T>;
     nand<P extends [
-        AggregateMixParamType<K>,
-        AggregateMixParamType<K>,
-        ...AggregateMixParamType<K>[]
-    ]>(...values: P): AggregateCommand<K, AggregateBooleanNegativeType.NAND, P>;
-    cmp<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateCompareSimpleType.CMP, P>;
-    eq<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCompareSimpleType.EQ, P>;
-    neq<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCompareSimpleType.NEQ, P>;
-    lt<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCompareSimpleType.LT, P>;
-    lte<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCompareSimpleType.LTE, P>;
-    gt<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCompareSimpleType.GT, P>;
-    gte<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCompareSimpleType.GTE, P>;
-    in<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>[]]>(...values: P): AggregateCommand<K, AggregateCompareFilterType.IN, P>;
-    nin<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>[]]>(...values: P): AggregateCommand<K, AggregateCompareFilterType.NIN, P>;
-    abs<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.ABS, P>;
-    sqrt<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.SQRT, P>;
-    ln<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.LN, P>;
-    log10<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.LOG10, P>;
-    sin<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.SIN, P>;
-    asin<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.ASIN, P>;
-    cos<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.COS, P>;
-    acos<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.ACOS, P>;
-    tan<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.TAN, P>;
-    atan<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.ATAN, P>;
-    cot<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.COT, P>;
-    floor<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.FLOOR, P>;
-    round<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.ROUND, P>;
-    ceil<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.CEIL, P>;
-    exp<P extends [] | [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.EXP, P>;
-    sign<P extends [] | [AggregateNumberParamType<K>]>(this: ThisType<AggregateCommandLike>, ...values: P): AggregateCommand<K, AggregateCalculationFunctionType.SIGN, P>;
-    mod<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.MOD, P>;
-    log<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.LOG, P>;
-    pow<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.POW, P>;
+        AggregateMixParamType<T>,
+        AggregateMixParamType<T>,
+        ...AggregateMixParamType<T>[]
+    ]>(...values: P): AggregateCommand<T>;
+    cmp<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    eq<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    neq<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    lt<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    lte<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    gt<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    gte<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    in<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>[]]>(...values: P): AggregateCommand<T>;
+    nin<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>[]]>(...values: P): AggregateCommand<T>;
+    abs<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    sqrt<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    ln<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    log10<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    sin<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    asin<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    cos<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    acos<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    tan<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    atan<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    cot<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    floor<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    round<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    ceil<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    exp<P extends [] | [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    sign<P extends [] | [AggregateNumberParamType<T>]>(this: ThisType<AggregateCommandLike>, ...values: P): AggregateCommand<T>;
+    mod<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    log<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    pow<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
     greatest<P extends [
-        AggregateNumberParamType<K>,
-        AggregateNumberParamType<K>,
-        ...AggregateNumberParamType<K>[]
-    ]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.GREATEST, P>;
+        AggregateNumberParamType<T>,
+        AggregateNumberParamType<T>,
+        ...AggregateNumberParamType<T>[]
+    ]>(...values: P): AggregateCommand<T>;
     least<P extends [
-        AggregateNumberParamType<K>,
-        AggregateNumberParamType<K>,
-        ...AggregateNumberParamType<K>[]
-    ]>(...values: P): AggregateCommand<K, AggregateCalculationFunctionType.LEAST, P>;
+        AggregateNumberParamType<T>,
+        AggregateNumberParamType<T>,
+        ...AggregateNumberParamType<T>[]
+    ]>(...values: P): AggregateCommand<T>;
     add<P extends [
-        AggregateNumberParamType<K>,
-        AggregateNumberParamType<K>,
-        ...AggregateNumberParamType<K>[]
-    ]>(...values: P): AggregateCommand<K, AggregateCalculationSimpleType.ADD, P>;
+        AggregateNumberParamType<T>,
+        AggregateNumberParamType<T>,
+        ...AggregateNumberParamType<T>[]
+    ]>(...values: P): AggregateCommand<T>;
     subtract<P extends [
-        AggregateNumberParamType<K>,
-        AggregateNumberParamType<K>,
-        ...AggregateNumberParamType<K>[]
-    ]>(...values: P): AggregateCommand<K, AggregateCalculationSimpleType.SUBTRACT, P>;
+        AggregateNumberParamType<T>,
+        AggregateNumberParamType<T>,
+        ...AggregateNumberParamType<T>[]
+    ]>(...values: P): AggregateCommand<T>;
     multiply<P extends [
-        AggregateNumberParamType<K>,
-        AggregateNumberParamType<K>,
-        ...AggregateNumberParamType<K>[]
-    ]>(...values: P): AggregateCommand<K, AggregateCalculationSimpleType.MULTIPLY, P>;
+        AggregateNumberParamType<T>,
+        AggregateNumberParamType<T>,
+        ...AggregateNumberParamType<T>[]
+    ]>(...values: P): AggregateCommand<T>;
     divide<P extends [
-        AggregateNumberParamType<K>,
-        AggregateNumberParamType<K>,
-        ...AggregateNumberParamType<K>[]
-    ]>(...values: P): AggregateCommand<K, AggregateCalculationSimpleType.DIVIDE, P>;
-    trim<P extends [AggregateStringParamType<K>]>(...values: P): AggregateCommand<K, AggregateStringType.TRIM, P>;
-    reverse<P extends [AggregateStringParamType<K>]>(...values: P): AggregateCommand<K, AggregateStringType.REVERSE, P>;
-    length<P extends [AggregateStringParamType<K>]>(...values: P): AggregateCommand<K, AggregateStringType.LENGTH, P>;
-    upper<P extends [AggregateStringParamType<K>]>(...values: P): AggregateCommand<K, AggregateStringType.UPPER, P>;
-    lower<P extends [AggregateStringParamType<K>]>(...values: P): AggregateCommand<K, AggregateStringType.LOWER, P>;
-    left<P extends [AggregateStringParamType<K>, AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateStringType.LEFT, P>;
-    right<P extends [AggregateStringParamType<K>, AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateStringType.RIGHT, P>;
+        AggregateNumberParamType<T>,
+        AggregateNumberParamType<T>,
+        ...AggregateNumberParamType<T>[]
+    ]>(...values: P): AggregateCommand<T>;
+    trim<P extends [AggregateStringParamType<T>]>(...values: P): AggregateCommand<T>;
+    reverse<P extends [AggregateStringParamType<T>]>(...values: P): AggregateCommand<T>;
+    length<P extends [AggregateStringParamType<T>]>(...values: P): AggregateCommand<T>;
+    upper<P extends [AggregateStringParamType<T>]>(...values: P): AggregateCommand<T>;
+    lower<P extends [AggregateStringParamType<T>]>(...values: P): AggregateCommand<T>;
+    left<P extends [AggregateStringParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    right<P extends [AggregateStringParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
     replace<P extends [
-        AggregateStringParamType<K>,
-        AggregateStringParamType<K>,
-        AggregateStringParamType<K>
-    ]>(...values: P): AggregateCommand<K, AggregateStringType.REPLACE, P>;
+        AggregateStringParamType<T>,
+        AggregateStringParamType<T>,
+        AggregateStringParamType<T>
+    ]>(...values: P): AggregateCommand<T>;
     insert<P extends [
-        AggregateStringParamType<K>,
-        AggregateNumberParamType<K>,
-        AggregateNumberParamType<K>,
-        AggregateStringParamType<K>
-    ]>(...values: P): AggregateCommand<K, AggregateStringType.INSERT, P>;
+        AggregateStringParamType<T>,
+        AggregateNumberParamType<T>,
+        AggregateNumberParamType<T>,
+        AggregateStringParamType<T>
+    ]>(...values: P): AggregateCommand<T>;
     substring<P extends [
-        AggregateStringParamType<K>,
-        AggregateNumberParamType<K>,
-        AggregateNumberParamType<K>
-    ]>(...values: P): AggregateCommand<K, AggregateStringType.SUBSTRING, P>;
+        AggregateStringParamType<T>,
+        AggregateNumberParamType<T>,
+        AggregateNumberParamType<T>
+    ]>(...values: P): AggregateCommand<T>;
     concat<P extends [
-        AggregateStringParamType<K>,
-        AggregateStringParamType<K>,
-        ...AggregateStringParamType<K>[]
-    ]>(...values: P): AggregateCommand<K, AggregateStringType.CONCAT, P>;
-    avg<P extends [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateAccumulationType.AVG, P>;
-    max<P extends [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateAccumulationType.MAX, P>;
-    min<P extends [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateAccumulationType.MIN, P>;
-    sum<P extends [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateAccumulationType.SUM, P>;
-    count<P extends [AggregateNumberParamType<K>]>(...values: P): AggregateCommand<K, AggregateAccumulationType.COUNT, P>;
+        AggregateStringParamType<T>,
+        AggregateStringParamType<T>,
+        ...AggregateStringParamType<T>[]
+    ]>(...values: P): AggregateCommand<T>;
+    avg<P extends [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    max<P extends [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    min<P extends [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    sum<P extends [AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    count<P extends [AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
     cond<P extends [
-        AggregateMixParamType<K>,
-        AggregateMixParamType<K>,
-        AggregateMixParamType<K>
-    ]>(...values: P): AggregateCommand<K, AggregateConditionType.COND, P>;
-    ifnull<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateConditionType.IFNULL, P>;
-    json_contains<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.CONTAINS, P>;
+        AggregateMixParamType<T>,
+        AggregateMixParamType<T>,
+        AggregateMixParamType<T>
+    ]>(...values: P): AggregateCommand<T>;
+    ifnull<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_contains<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
     json_contains_path<P extends [
-        AggregateMixParamType<K>,
+        AggregateMixParamType<T>,
         AggregateSeachOptions,
-        AggregateStringParamType<K>,
-        AggregateStringParamType<K>
-    ]>(...values: P): AggregateCommand<K, AggregateJsonType.CONTAINS_PATH, P>;
+        AggregateStringParamType<T>,
+        AggregateStringParamType<T>
+    ]>(...values: P): AggregateCommand<T>;
     json_search<P extends [
-        AggregateMixParamType<K>,
+        AggregateMixParamType<T>,
         AggregateSeachOptions,
-        AggregateMixParamType<K>
-    ]>(...values: P): AggregateCommand<K, AggregateJsonType.SEARCH, P>;
-    json_extract<P extends [AggregateMixParamType<K>, AggregateStringParamType<K>[]]>(...values: P): AggregateCommand<K, AggregateJsonType.EXTRACT, P>;
-    json_merge_preserve<P extends AggregateMixParamType<K>[]>(...values: P): AggregateCommand<K, AggregateJsonType.MERGE_PRESERVE, P>;
-    json_merge_patch<P extends AggregateMixParamType<K>[]>(...values: P): AggregateCommand<K, AggregateJsonType.MERGE_PATCH, P>;
-    json_set<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.SET, P>;
-    json_insert<P extends [AggregateMixParamType<K>, AggregateObjectParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.INSERT, P>;
-    json_replace<P extends [AggregateMixParamType<K>, AggregateObjectParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.REPLACE, P>;
-    json_remove<P extends [AggregateMixParamType<K>, AggregateStringParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.REMOVE, P>;
-    json_array_append<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.ARRAY_APPEND, P>;
-    json_array_insert<P extends [
-        AggregateMixParamType<K>,
-        AggregateMixParamType<K>,
-        AggregateStringParamType<K>
-    ]>(...values: P): AggregateCommand<K, AggregateJsonType.ARRAY_INSERT, P>;
-    json_object<P extends [AggregateObjectParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.OBJECT, P>;
-    json_array<P extends [AggregateArrayParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.ARRAY, P>;
-    json_type<P extends [AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.TYPE, P>;
-    json_keys<P extends [AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.KEYS, P>;
-    json_depth<P extends [AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.DEPTH, P>;
-    json_length<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.LENGTH, P>;
-    json_valid<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.VALID, P>;
-    json_pretty<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.PRETTY, P>;
-    json_quote<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.QUOTE, P>;
-    json_unquote<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(...values: P): AggregateCommand<K, AggregateJsonType.UNQUOTE, P>;
+        AggregateMixParamType<T>
+    ]>(...values: P): AggregateCommand<T>;
+    json_extract<P extends [AggregateMixParamType<T>, AggregateStringParamType<T>[]]>(...values: P): AggregateCommand<T>;
+    json_merge_preserve<P extends AggregateMixParamType<T>[]>(...values: P): AggregateCommand<T>;
+    json_merge_patch<P extends AggregateMixParamType<T>[]>(...values: P): AggregateCommand<T>;
+    json_set<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_insert<P extends [AggregateMixParamType<T>, AggregateObjectParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_replace<P extends [AggregateMixParamType<T>, AggregateObjectParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_remove<P extends [AggregateMixParamType<T>, AggregateStringParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_array_append<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_array_insert<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_object<P extends [AggregateObjectParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_array<P extends [AggregateArrayParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_type<P extends [AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_keys<P extends [AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_depth<P extends [AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_length<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_valid<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_pretty<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_quote<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_unquote<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
 }
-declare const $: MySQLAggregateCommand<object, any, any>;
+declare const $: MySQLAggregateCommand<object>;
 export { $, MySQLAggregateCommand };

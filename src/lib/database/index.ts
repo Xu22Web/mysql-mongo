@@ -1,19 +1,22 @@
-import { Connection, createPool, Pool, PoolConfig } from 'mysql';
+import { Connection, createPool, Pool } from 'mysql';
 import { MySQLCollection } from '../collection';
 import { Collection } from '../collection/interface';
 import { cmd } from '../command';
 import { Command } from '../command/interface';
 import { MySQLConnectionController } from '../connectionController';
 import { ConnectionController } from '../connectionController/interface';
-import { MySQLDatabaseRegExp } from '../sql/sqlCondition/regExp';
+import { MySQLRegExpLike } from '../sql/sqlCondition/regExpLike';
 import {
-  DatabaseRegExp,
-  DatabaseRegExpLike,
-} from '../sql/sqlCondition/regExp/interface';
+  RegExpLike,
+  RegExpLikeConfig,
+} from '../sql/sqlCondition/regExpLike/interface';
 import { MySQLTransaction } from '../transaction';
 import { Transaction } from '../transaction/interface';
 import { Database, DatabaseConfig, DatabaseType } from './interface';
 
+/**
+ * @description MySQL 数据库
+ */
 class MySQLDatabase<T extends DatabaseType> implements Database<T> {
   command: Command = cmd;
   connController: ConnectionController<T>;
@@ -31,7 +34,7 @@ class MySQLDatabase<T extends DatabaseType> implements Database<T> {
     // 获取连接控制
     this.connController = new MySQLConnectionController(this);
   }
-  collection<T = any>(name: string): Collection<T> {
+  collection<T extends object = object>(name: string): Collection<T> {
     // 配置
     const { jsonParse, tinyIntToBool } = this.$config;
     const newCollection = new MySQLCollection<T>(
@@ -41,8 +44,8 @@ class MySQLDatabase<T extends DatabaseType> implements Database<T> {
     );
     return newCollection;
   }
-  RegExp(regexp: RegExp | DatabaseRegExpLike): DatabaseRegExp {
-    const newRegExp = new MySQLDatabaseRegExp();
+  RegExp(regexp: RegExp | RegExpLikeConfig): RegExpLike {
+    const newRegExp = new MySQLRegExpLike();
     return newRegExp.create(regexp);
   }
   createPool(): Pool {

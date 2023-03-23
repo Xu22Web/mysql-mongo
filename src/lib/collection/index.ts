@@ -1,4 +1,4 @@
-import { Connection, escape, FieldInfo, PoolConnection } from 'mysql';
+import { Connection, escape, FieldInfo, OkPacket, PoolConnection } from 'mysql';
 import { errHandler, MySQLErrorType } from '../../model/errorHandler';
 import {
   objectMerge,
@@ -28,7 +28,7 @@ import {
   CollectionConfig,
   CollectionProps,
   Filter,
-  OkPacket,
+  InsertData,
   OrderBy,
   QueryResult,
   RowData,
@@ -37,7 +37,7 @@ import {
 } from './interface';
 
 /**
- * @description mysql 集合
+ * @description MySQL 集合
  * @example // 获取数据
  * new MySQLCollection<T>(name)
  * .where(where)
@@ -55,7 +55,7 @@ import {
  * .where(where)
  * .update(data)
  */
-class MySQLCollection<T> implements Collection<T> {
+class MySQLCollection<T extends object> implements Collection<T> {
   $name: string;
   $filter?: Filter<T>;
   $where?: Where<T>;
@@ -92,26 +92,22 @@ class MySQLCollection<T> implements Collection<T> {
     const { $limit, $skip, $filter, $where, $orderby } = props;
     // 属性
     const $props: CollectionProps<T> = { $name };
-    // 合并属性
-    if (typeOf.isObject(this.$filter)) {
-      $props.$filter = objectMerge({}, this.$filter, $filter);
-    }
-    if (typeOf.isObject(this.$where)) {
-      $props.$where = objectMerge({}, this.$where, $where);
-    }
-    if (typeOf.isObject(this.$orderby)) {
-      $props.$orderby = objectMerge({}, this.$orderby, $orderby);
-    }
-    if (typeOf.isNumber($skip)) {
-      $props.$skip = $skip;
-    } else {
-      $props.$skip = this.$skip;
-    }
-    if (typeOf.isNumber($limit)) {
-      $props.$limit = $limit;
-    } else {
-      $props.$limit = this.$limit;
-    }
+
+    $props.$filter = typeOf.isObject(this.$filter)
+      ? objectMerge({}, this.$filter, $filter)
+      : objectMerge({}, $filter);
+
+    $props.$where = typeOf.isObject(this.$where)
+      ? objectMerge({}, this.$where, $where)
+      : objectMerge({}, $where);
+
+    $props.$orderby = typeOf.isObject(this.$orderby)
+      ? objectMerge({}, this.$orderby, $orderby)
+      : objectMerge({}, $orderby);
+
+    $props.$skip = typeOf.isNumber($skip) ? $skip : this.$skip;
+    $props.$limit = typeOf.isNumber($limit) ? $limit : this.$limit;
+
     // 新集合
     const newCollection = new MySQLCollection<T>(
       $database,
@@ -259,7 +255,7 @@ class MySQLCollection<T> implements Collection<T> {
       status: false,
     };
   }
-  async get(): Promise<QueryResult<RowData<T[] | []>>> {
+  async get(): Promise<QueryResult<RowData<T[]>>> {
     const { $name, $filter, $where, $skip, $orderby, $limit } = this;
     // name
     if (!typeOf.isNotBlankStr($name)) {
@@ -320,7 +316,7 @@ class MySQLCollection<T> implements Collection<T> {
       throw errHandler.createError(MySQLErrorType.COLLECTION_GET_ERROR, err);
     }
   }
-  async add(data: RowData<T>): Promise<QueryResult<OkPacket | null>> {
+  async add(data: RowData<T>): Promise<QueryResult<OkPacket>> {
     const { $name } = this;
     // name
     if (!typeOf.isNotBlankStr($name)) {
@@ -357,7 +353,7 @@ class MySQLCollection<T> implements Collection<T> {
       throw errHandler.createError(MySQLErrorType.COLLECTION_ADD_ERROR, err);
     }
   }
-  async remove(): Promise<QueryResult<OkPacket | null>> {
+  async remove(): Promise<QueryResult<OkPacket>> {
     const { $name, $where, $orderby, $limit } = this;
     // name
     if (!typeOf.isNotBlankStr($name)) {
@@ -369,7 +365,7 @@ class MySQLCollection<T> implements Collection<T> {
     try {
       const deleteGen = new MySQLDeleteGenerator({
         $name,
-        $where: $where,
+        $where,
         $orderby,
         $limit,
       });
@@ -387,7 +383,7 @@ class MySQLCollection<T> implements Collection<T> {
       throw errHandler.createError(MySQLErrorType.COLLECTION_REMOVE_ERROR, err);
     }
   }
-  async update(data: RowData<T>): Promise<QueryResult<OkPacket | null>> {
+  async update(data: InsertData<T>): Promise<QueryResult<OkPacket>> {
     const { $name, $where, $orderby, $limit } = this;
     // name
     if (!typeOf.isNotBlankStr($name)) {
@@ -427,7 +423,7 @@ class MySQLCollection<T> implements Collection<T> {
       throw errHandler.createError(MySQLErrorType.COLLECTION_UPDATE_ERROR, err);
     }
   }
-  async set(data: RowData<T>): Promise<QueryResult<OkPacket | null>> {
+  async set(data: InsertData<T>): Promise<QueryResult<OkPacket>> {
     const { $name } = this;
     // name
     if (!typeOf.isNotBlankStr($name)) {
@@ -447,12 +443,19 @@ class MySQLCollection<T> implements Collection<T> {
       // 获取字段
       const fields = await this.getFields();
       // 处理过的数据
-      const newData: { [P in keyof T]?: any } = {};
+      const newData: InsertData<T> = {};
       fields.forEach((field) => {
         // 字段名
-        const fieldName = field.COLUMN_NAME;
-        newData[<keyof RowData<T>>fieldName] =
-          data[<keyof RowData<T>>fieldName];
+        const {
+          COLUMN_NAME: fieldName,
+          COLUMN_DEFAULT: defaultValue,
+          COLUMN_TYPE: fieldType,
+        } = field;
+        newData[<keyof InsertData<T>>fieldName] = typeOf.isUndefined(
+          data[<keyof InsertData<T>>fieldName]
+        )
+          ? <any>defaultValue
+          : data[<keyof InsertData<T>>fieldName];
       });
 
       // 执行更新

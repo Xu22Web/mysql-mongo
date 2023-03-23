@@ -23,43 +23,6 @@ import {
  */
 export interface SqlClip {
   /**
-   * @description 聚合值片段
-   * @param value
-   */
-  aggrValueClip(value: AggregateMixParamType<object>): string | SQLJson | null;
-  /**
-   * @description 聚合json操作片段
-   * @param aggregate 聚合操作
-   */
-  aggrJsonClip(aggregate: AggregateCommandLike): string;
-  /**
-   * @description 聚合操作控制
-   * @param aggregate 聚合操作
-   */
-  aggrControllerClip(aggregate: AggregateCommandLike): string;
-  /**
-   * @description 命令值片段
-   * @param key
-   * @param value
-   */
-  cmdValueClip(key: string, value: CommandMixParamType): string | null;
-  /**
-   * @description 比较操作符片段
-   * @param key 字段
-   * @param command
-   */
-  cmdCompareClip(key: string, command: CommandLike): string;
-  /**
-   * @description 逻辑操作符片段
-   * @param command
-   */
-  cmdLogicClip(key: string, command: CommandLike): string;
-  /**
-   * @description 命令操作控制
-   * @param command 命令
-   */
-  cmdControllerClip(key: string, command: CommandLike): string;
-  /**
    * @description 集合名
    * @param name
    */

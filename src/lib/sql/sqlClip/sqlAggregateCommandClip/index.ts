@@ -1,4 +1,8 @@
+import { escape } from 'mysql';
 import { sqlClip } from '..';
+import { errHandler, MySQLErrorType } from '../../../../model/errorHandler';
+import { isKey } from '../../../../utils/handler';
+import typeOf from '../../../../utils/typeOf';
 import {
   AggregateAccumulationType,
   AggregateBooleanNegativeType,
@@ -11,971 +15,774 @@ import {
   AggregateConditionType,
   AggregateJsonType,
   AggregateMixParamType,
+  AggregateProps,
   AggregateStringType,
 } from '../../../aggregateCommand/interface';
+import { SQLJsonObject } from '../../sqlGenerator/interface';
 import { SQLAggregateCommandClip } from './interface';
 
 /**
  * @description aggregate clip 片段
  */
 class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
-  and(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateBooleanSimpleType.AND,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  aggrControllerClip(aggregate: AggregateCommandLike): string {
+    // 类型 模式
+    const { $type } = aggregate;
+    if (
+      !typeOf.objStructMatch<AggregateProps>(aggregate, ['$value', '$type'])
+    ) {
+      throw errHandler.createError(
+        MySQLErrorType.ARGUMENTS_TYPE_ERROR,
+        `aggregate must be a 'AggregateCommandLike'`
+      );
+    }
+
+    // 布尔操作符
+    if ($type === AggregateBooleanSimpleType.AND) {
+      return this.and(aggregate);
+    }
+    if ($type === AggregateBooleanSimpleType.OR) {
+      return this.or(aggregate);
+    }
+    if ($type === AggregateBooleanNegativeType.NOT) {
+      return this.not(aggregate);
+    }
+    if ($type === AggregateBooleanNegativeType.NAND) {
+      return this.nand(aggregate);
+    }
+    if ($type === AggregateBooleanNegativeType.NOR) {
+      return this.nor(aggregate);
+    }
+    // 比较操作符
+    if ($type === AggregateCompareSimpleType.CMP) {
+      return this.cmp(aggregate);
+    }
+    if ($type === AggregateCompareSimpleType.EQ) {
+      return this.eq(aggregate);
+    }
+    if ($type === AggregateCompareSimpleType.NEQ) {
+      return this.neq(aggregate);
+    }
+    if ($type === AggregateCompareSimpleType.LT) {
+      return this.lt(aggregate);
+    }
+    if ($type === AggregateCompareSimpleType.LTE) {
+      return this.lte(aggregate);
+    }
+    if ($type === AggregateCompareSimpleType.GT) {
+      return this.gt(aggregate);
+    }
+    if ($type === AggregateCompareSimpleType.GTE) {
+      return this.gte(aggregate);
+    }
+    if ($type === AggregateCompareFilterType.IN) {
+      return this.in(aggregate);
+    }
+    if ($type === AggregateCompareFilterType.NIN) {
+      return this.nin(aggregate);
+    }
+    // 计算操作符
+    if ($type === AggregateCalculationFunctionType.ABS) {
+      return this.abs(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.CEIL) {
+      return this.ceil(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.FLOOR) {
+      return this.floor(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.ROUND) {
+      return this.round(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.LN) {
+      return this.ln(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.LOG10) {
+      return this.log10(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.SIN) {
+      return this.sin(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.ASIN) {
+      return this.asin(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.COS) {
+      return this.cos(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.ACOS) {
+      return this.acos(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.TAN) {
+      return this.tan(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.ATAN) {
+      return this.atan(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.COT) {
+      return this.cot(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.SQRT) {
+      return this.sqrt(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.EXP) {
+      return this.exp(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.SIGN) {
+      return this.sign(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.LOG) {
+      return this.log(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.MOD) {
+      return this.mod(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.POW) {
+      return this.pow(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.GREATEST) {
+      return this.greatest(aggregate);
+    }
+    if ($type === AggregateCalculationFunctionType.LEAST) {
+      return this.least(aggregate);
+    }
+    if ($type === AggregateCalculationSimpleType.ADD) {
+      return this.add(aggregate);
+    }
+    if ($type === AggregateCalculationSimpleType.SUBTRACT) {
+      return this.subtract(aggregate);
+    }
+    if ($type === AggregateCalculationSimpleType.MULTIPLY) {
+      return this.multiply(aggregate);
+    }
+    if ($type === AggregateCalculationSimpleType.DIVIDE) {
+      return this.divide(aggregate);
+    }
+    // 字符串操作
+    if ($type === AggregateStringType.LENGTH) {
+      return this.length(aggregate);
+    }
+    if ($type === AggregateStringType.REVERSE) {
+      return this.reverse(aggregate);
+    }
+    if ($type === AggregateStringType.TRIM) {
+      return this.trim(aggregate);
+    }
+    if ($type === AggregateStringType.LOWER) {
+      return this.lower(aggregate);
+    }
+    if ($type === AggregateStringType.UPPER) {
+      return this.upper(aggregate);
+    }
+    if ($type === AggregateStringType.LEFT) {
+      return this.left(aggregate);
+    }
+    if ($type === AggregateStringType.RIGHT) {
+      return this.right(aggregate);
+    }
+    if ($type === AggregateStringType.REPLACE) {
+      return this.replace(aggregate);
+    }
+    if ($type === AggregateStringType.SUBSTRING) {
+      return this.substring(aggregate);
+    }
+    if ($type === AggregateStringType.INSERT) {
+      return this.insert(aggregate);
+    }
+    if ($type === AggregateStringType.CONCAT) {
+      return this.concat(aggregate);
+    }
+    // 累加操作符
+    if ($type === AggregateAccumulationType.AVG) {
+      return this.avg(aggregate);
+    }
+    if ($type === AggregateAccumulationType.MAX) {
+      return this.max(aggregate);
+    }
+    if ($type === AggregateAccumulationType.MIN) {
+      return this.min(aggregate);
+    }
+    if ($type === AggregateAccumulationType.SUM) {
+      return this.sum(aggregate);
+    }
+    if ($type === AggregateAccumulationType.COUNT) {
+      return this.count(aggregate);
+    }
+    // 条件操作符
+    if ($type === AggregateConditionType.COND) {
+      return this.cond(aggregate);
+    }
+    if ($type === AggregateConditionType.IFNULL) {
+      return this.ifnull(aggregate);
+    }
+    // json 操作
+    if ($type === AggregateJsonType.OBJECT) {
+      return this.json_object(aggregate);
+    }
+    if ($type === AggregateJsonType.ARRAY) {
+      return this.json_array(aggregate);
+    }
+    if ($type === AggregateJsonType.ARRAY_APPEND) {
+      return this.json_array_append(aggregate);
+    }
+    throw errHandler.createError(
+      MySQLErrorType.ARGUMENTS_TYPE_ERROR,
+      `aggragte.type don't exist`
+    );
+  }
+  aggrValueClip(value: AggregateMixParamType): string {
+    // AggregateCommand 类型
+    if (typeOf.objStructMatch<AggregateProps>(value, ['$value', '$type'])) {
+      return this.aggrControllerClip(value);
+    }
+    // 字符键表达式
+    if (isKey(value)) {
+      const key = sqlClip.keyClip(value);
+      return key;
+    }
+    // number、string、boolean 类型
+    if (
+      typeOf.isNumber(value) ||
+      typeOf.isString(value) ||
+      typeOf.isBooloon(value)
+    ) {
+      return escape(value);
+    }
+    // null 类型
+    if (typeOf.isNull(value)) {
+      return 'null';
+    }
+    // object、 array 类型
+    if (typeOf.isArray(value) || typeOf.isObject(value)) {
+      return `cast(${escape(JSON.stringify(value))} as json)`;
+    }
+    return '';
+  }
+  aggrJsonValueClip(value: AggregateMixParamType): string {
+    // AggregateCommand 类型
+    if (typeOf.objStructMatch<AggregateProps>(value, ['$value', '$type'])) {
+      return this.aggrControllerClip(value);
+    }
+    // 字符键表达式
+    if (isKey(value)) {
+      const key = sqlClip.keyClip(value);
+      return key;
+    }
+    // number、string、boolean 类型
+    if (
+      typeOf.isNumber(value) ||
+      typeOf.isString(value) ||
+      typeOf.isBooloon(value)
+    ) {
+      return escape(value);
+    }
+    // null 类型
+    if (typeOf.isNull(value)) {
+      return 'null';
+    }
+    //  array 类型
+    if (typeOf.isArray(value)) {
+      return `${AggregateJsonType.ARRAY}(${value
+        .map((item) => {
+          return this.aggrValueClip(item);
+        })
+        .join(', ')})`;
+    }
+    // object 类型
+    if (typeOf.isObject(value)) {
+      const obj = <SQLJsonObject>value;
+      const keys = <(keyof SQLJsonObject)[]>Object.keys(<SQLJsonObject>obj);
+      return `${AggregateJsonType.OBJECT}(${keys
+        .map((key) => {
+          const value = obj[key];
+          return `${escape(key)}, ${this.aggrValueClip(value)}`;
+        })
+        .join(',')})`;
+    }
+    return '';
+  }
+  and(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return args.join(` ${symbol} `);
   }
-  or(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateBooleanSimpleType.OR,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  or(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return args.join(` ${symbol} `);
   }
-  not(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateBooleanNegativeType.NOT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  not(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `not(${args[0]})`;
   }
-  nor(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateBooleanNegativeType.NOR,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  nor(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `not(${args.join(` or `)})`;
   }
-  nand(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateBooleanNegativeType.NAND,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  nand(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `not(${args.join(` and `)})`;
   }
-  cmp(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCompareSimpleType.CMP,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  cmp(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `if(${args[0]} > ${args[1]}, 1, if(${args[0]} = ${args[1]}, 0, -1))`;
   }
-  eq(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCompareSimpleType.EQ,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  eq(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     // null
-    if (args[0] === 'null') {
+    if (args[1] === 'null') {
       return `${args[0]} is ${args[1]}`;
     }
     return `(${args[0]} ${symbol} ${args[1]})`;
   }
-  neq(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCompareSimpleType.NEQ,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  neq(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     // null
-    if (args[0] === 'null') {
+    if (args[1] === 'null') {
       return `${args[0]} is not ${args[1]}`;
     }
     return `(${args[0]} ${symbol} ${args[1]})`;
   }
-  lt(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCompareSimpleType.LT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  lt(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `(${args[0]} ${symbol} ${args[1]})`;
   }
-  lte(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCompareSimpleType.LTE,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  lte(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `(${args[0]} ${symbol} ${args[1]})`;
   }
-  gt(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCompareSimpleType.GT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  gt(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `(${args[0]} ${symbol} ${args[1]})`;
   }
-  gte(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCompareSimpleType.GTE,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  gte(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `(${args[0]} ${symbol} ${args[1]})`;
   }
-  in(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCompareFilterType.IN,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  in(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
-    const field = sqlClip.aggrValueClip(rawArgs[0]);
+    const field = this.aggrValueClip(rawArgs[0]);
     // 参数
     const args = (<any[]>rawArgs[1])!.map((rawArg) =>
-      sqlClip.aggrValueClip(rawArg)
+      this.aggrValueClip(rawArg)
     );
     return `${field} ${symbol} (${args.join(', ')})`;
   }
-  nin(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCompareFilterType.NIN,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  nin(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
-    const field = sqlClip.aggrValueClip(rawArgs[0]);
+    const field = this.aggrValueClip(rawArgs[0]);
     // 参数
     const args = (<any[]>rawArgs[1]).map((rawArg) =>
-      sqlClip.aggrValueClip(rawArg)
+      this.aggrValueClip(rawArg)
     );
     return `${field} ${symbol} (${args.join(', ')})`;
   }
-  abs(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.ABS,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  abs(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  sqrt(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.SQRT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  sqrt(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  ln(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.LN,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  ln(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  log10(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.LOG10,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  log10(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  sin(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.SIN,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  sin(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  asin(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.ASIN,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  asin(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  cos(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.COS,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  cos(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  acos(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.ACOS,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  acos(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  tan(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.TAN,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  tan(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  atan(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.ATAN,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  atan(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  cot(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.COT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  cot(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  floor(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.FLOOR,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  floor(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  round(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.ROUND,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  round(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  ceil(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.CEIL,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  ceil(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  exp(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.EXP,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  exp(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  sign(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.SIGN,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  sign(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  mod(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.MOD,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  mod(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]}, ${args[1]})`;
   }
-  log(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.LOG,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  log(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]}, ${args[1]})`;
   }
-  pow(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.POW,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  pow(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]}, ${args[1]})`;
   }
-  greatest(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.GREATEST,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  greatest(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args.join(', ')})`;
   }
-  least(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationFunctionType.LEAST,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  least(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args.join(', ')})`;
   }
-  add(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationSimpleType.ADD,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  add(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `(${args.join(symbol)})`;
   }
-  subtract(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationSimpleType.SUBTRACT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  subtract(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `(${args.join(symbol)})`;
   }
-  multiply(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationSimpleType.MULTIPLY,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  multiply(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `(${args.join(symbol)})`;
   }
-  divide(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateCalculationSimpleType.DIVIDE,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  divide(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `(${args.join(symbol)})`;
   }
-  length(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateStringType.LENGTH,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  length(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  reverse(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateStringType.REVERSE,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  reverse(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  trim(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateStringType.TRIM,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  trim(aggregate: AggregateProps) {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  upper(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateStringType.UPPER,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  upper(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  lower(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateStringType.LOWER,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  lower(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  left(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateStringType.LEFT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  left(aggregate: AggregateProps) {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]}, ${args[1]})`;
   }
-  right(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateStringType.RIGHT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  right(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]}, ${args[1]})`;
   }
-  replace(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateStringType.REPLACE,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  replace(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]}, ${args[1]}, ${args[2]})`;
   }
-  substring(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateStringType.SUBSTRING,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  substring(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]}, ${args[1]}, ${args[2]})`;
   }
-  insert(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateStringType.INSERT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  insert(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]}, ${args[1]}, ${args[2]}, ${args[3]})`;
   }
-  concat(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateStringType.CONCAT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  concat(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args.join(', ')})`;
   }
-  avg(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateAccumulationType.AVG,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  avg(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  max(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateAccumulationType.MAX,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  max(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  min(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateAccumulationType.MIN,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  min(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  sum(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateAccumulationType.SUM,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  sum(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  count(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateAccumulationType.COUNT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  count(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `${symbol}(${args[0]})`;
   }
-  cond(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateConditionType.COND,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  cond(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `if(${args[0]}, ${args[1]}, ${args[2]})`;
   }
-  ifnull(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateConditionType.IFNULL,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  ifnull(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs } = aggregate;
     // 参数
-    const args = rawArgs.map((rawArg) => sqlClip.aggrValueClip(rawArg));
+    const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     return `ifnull(${args[0]}, ${args[1]})`;
   }
-  json_contains(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.CONTAINS,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_contains(aggregate: AggregateProps): string {
     return '';
   }
-  json_contains_path(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.CONTAINS_PATH,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_contains_path(aggregate: AggregateProps): string {
     return '';
   }
-  json_search(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.SEARCH,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_search(aggregate: AggregateProps): string {
     return '';
   }
-  json_extract(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.EXTRACT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_extract(aggregate: AggregateProps): string {
     return '';
   }
-  json_merge_preserve(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.MERGE_PRESERVE,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_merge_preserve(aggregate: AggregateProps): string {
     return '';
   }
-  json_merge_patch(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.MERGE_PATCH,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_merge_patch(aggregate: AggregateProps): string {
     return '';
   }
-  json_set(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.SET,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_set(aggregate: AggregateProps): string {
     return '';
   }
-  json_insert(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.INSERT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_insert(aggregate: AggregateProps): string {
     return '';
   }
-  json_replace(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.REPLACE,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_replace(aggregate: AggregateProps): string {
     return '';
   }
-  json_remove(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.REMOVE,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_remove(aggregate: AggregateProps): string {
     return '';
   }
-  json_array_append(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.ARRAY_APPEND,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_array_append(aggregate: AggregateProps): string {
     const { $value: rawArgs } = aggregate;
-    const jsonArr = sqlClip.aggrJsonValueClip(rawArgs[0]);
-    const appendVal = sqlClip.aggrJsonValueClip(rawArgs[1]);
+    const jsonArr = this.aggrJsonValueClip(rawArgs[0]);
+    const appendVal = this.aggrJsonValueClip(rawArgs[1]);
     return `${AggregateJsonType.ARRAY_APPEND}(${jsonArr}, '$', ${appendVal})`;
   }
-  json_array_insert(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.ARRAY_INSERT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_array_insert(aggregate: AggregateProps): string {
     return '';
   }
-  json_object(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.OBJECT,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_object(aggregate: AggregateProps): string {
     const { $value: rawArgs } = aggregate;
-    return sqlClip.aggrJsonValueClip(rawArgs[0]);
+    return this.aggrJsonValueClip(rawArgs[0]);
   }
-  json_array(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.ARRAY,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_array(aggregate: AggregateProps): string {
     const { $value: rawArgs } = aggregate;
-    return sqlClip.aggrJsonValueClip(rawArgs[0]);
+    return this.aggrJsonValueClip(rawArgs[0]);
   }
-  json_type(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.TYPE,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_type(aggregate: AggregateProps): string {
     const { $value: rawArgs } = aggregate;
-    return sqlClip.aggrJsonValueClip(rawArgs[0]);
+    return this.aggrJsonValueClip(rawArgs[0]);
   }
-  json_keys(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.KEYS,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_keys(aggregate: AggregateProps): string {
     return '';
   }
-  json_depth(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.DEPTH,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_depth(aggregate: AggregateProps): string {
     return '';
   }
-  json_length(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.LENGTH,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_length(aggregate: AggregateProps): string {
     return '';
   }
-  json_valid(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.VALID,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_valid(aggregate: AggregateProps): string {
     return '';
   }
-  json_pretty(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.PRETTY,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_pretty(aggregate: AggregateProps): string {
     return '';
   }
-  json_quote(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.QUOTE,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_quote(aggregate: AggregateProps): string {
     return '';
   }
-  json_unquote(
-    aggregate: AggregateCommandLike<
-      any,
-      AggregateJsonType.UNQUOTE,
-      AggregateMixParamType<object>[]
-    >
-  ): string {
+  json_unquote(aggregate: AggregateProps): string {
     return '';
   }
 }

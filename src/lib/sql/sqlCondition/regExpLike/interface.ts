@@ -1,7 +1,7 @@
 /**
  * @description 数据库正则表达式配置
  */
-export type DatabaseRegExpLike = {
+export type RegExpLikeConfig = {
   /**
    * @description 正则表达
    */
@@ -16,7 +16,7 @@ export type DatabaseRegExpLike = {
 /**
  * @description 数据库正则表达式
  */
-export interface DatabaseRegExp {
+export interface RegExpLike {
   /**
    * @description 正则表达
    */
@@ -27,5 +27,5 @@ export interface DatabaseRegExp {
    * - "m" 跨行匹配
    */
   $options?: string;
-  create(regexp: DatabaseRegExpLike | RegExp): DatabaseRegExp;
+  create(regexp: RegExpLikeConfig | RegExp): RegExpLike;
 }

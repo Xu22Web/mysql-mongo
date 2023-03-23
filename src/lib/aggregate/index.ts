@@ -22,7 +22,10 @@ import {
   AggregateTaskType,
 } from './interface';
 
-class MySQLAggregate<T> implements Aggregate<T> {
+/**
+ * @description MySQl 聚合操作
+ */
+class MySQLAggregate<T extends object> implements Aggregate<T> {
   $collection: Collection<T>;
   $taskList: AggregateTask[];
   constructor(collection: Collection<T>) {
@@ -138,7 +141,7 @@ class MySQLAggregate<T> implements Aggregate<T> {
     });
     return this;
   }
-  async end(): Promise<QueryResult<RowData<T[] | []>>> {
+  async end(): Promise<QueryResult<RowData<T[]>>> {
     // 集合名
     const { $name } = this.$collection;
     // name

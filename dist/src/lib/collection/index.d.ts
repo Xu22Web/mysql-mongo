@@ -1,9 +1,9 @@
-import { Connection, FieldInfo, PoolConnection } from 'mysql';
+import { Connection, FieldInfo, OkPacket, PoolConnection } from 'mysql';
 import { Aggregate } from '../aggregate/interface';
 import { Database, DatabaseType } from '../database/interface';
-import { Collection, CollectionConfig, CollectionProps, Filter, OkPacket, OrderBy, QueryResult, RowData, RowDataPacket, Where } from './interface';
+import { Collection, CollectionConfig, CollectionProps, Filter, InsertData, OrderBy, QueryResult, RowData, RowDataPacket, Where } from './interface';
 /**
- * @description mysql 集合
+ * @description MySQL 集合
  * @example // 获取数据
  * new MySQLCollection<T>(name)
  * .where(where)
@@ -21,7 +21,7 @@ import { Collection, CollectionConfig, CollectionProps, Filter, OkPacket, OrderB
  * .where(where)
  * .update(data)
  */
-declare class MySQLCollection<T> implements Collection<T> {
+declare class MySQLCollection<T extends object> implements Collection<T> {
     $name: string;
     $filter?: Filter<T>;
     $where?: Where<T>;
@@ -45,11 +45,11 @@ declare class MySQLCollection<T> implements Collection<T> {
         fields: FieldInfo[] | undefined;
     }>;
     count(): Promise<QueryResult<number>>;
-    get(): Promise<QueryResult<RowData<T[] | []>>>;
-    add(data: RowData<T>): Promise<QueryResult<OkPacket | null>>;
-    remove(): Promise<QueryResult<OkPacket | null>>;
-    update(data: RowData<T>): Promise<QueryResult<OkPacket | null>>;
-    set(data: RowData<T>): Promise<QueryResult<OkPacket | null>>;
+    get(): Promise<QueryResult<RowData<T[]>>>;
+    add(data: RowData<T>): Promise<QueryResult<OkPacket>>;
+    remove(): Promise<QueryResult<OkPacket>>;
+    update(data: InsertData<T>): Promise<QueryResult<OkPacket>>;
+    set(data: InsertData<T>): Promise<QueryResult<OkPacket>>;
     getFields(filter?: Filter<T>): Promise<RowDataPacket[]>;
 }
 export { MySQLCollection };

@@ -3,38 +3,16 @@ import { errHandler, MySQLErrorType } from '../../../model/errorHandler';
 import { getAllKey, isKey } from '../../../utils/handler';
 import typeOf from '../../../utils/typeOf';
 import {
-  AggregateAccumulationType,
-  AggregateBooleanNegativeType,
-  AggregateBooleanSimpleType,
-  AggregateCalculationFunctionType,
-  AggregateCalculationSimpleType,
-  AggregateCommand,
   AggregateCommandLike,
-  AggregateCompareFilterType,
-  AggregateCompareSimpleType,
-  AggregateConditionType,
-  AggregateJsonType,
-  AggregateMixParamType,
-  AggregateStringType,
+  AggregateProps,
 } from '../../aggregateCommand/interface';
-import {
-  Command,
-  CommandCompareFilterType,
-  CommandCompareSimpleType,
-  CommandCompareType,
-  CommandLike,
-  CommandLogicNegativeType,
-  CommandLogicSimpleType,
-  CommandLogicType,
-  CommandMixParamType,
-} from '../../command/interface';
+import { CommandProps } from '../../command/interface';
 import {
   SQLAlias,
   SQLFields,
   SQLFilter,
   SQLGroupBy,
   SQLHaving,
-  SQLJsonObject,
   SQLLike,
   SQLName,
   SQLNewFields,
@@ -45,457 +23,12 @@ import {
 } from '../sqlGenerator/interface';
 import { SqlClip } from './interface';
 import { sqlAggregateCommandClip } from './sqlAggregateCommandClip';
+import { sqlCommandClip } from './sqlCommandClip';
+
 /**
- * @description sql片段
+ * @description sql 片段
  */
 class MySQLClip implements SqlClip {
-  aggrValueClip(value: AggregateMixParamType<object>): string {
-    // AggregateCommand 类型
-    if (typeOf.objStructMatch<AggregateCommand>(value, ['$value', '$type'])) {
-      return this.aggrControllerClip(value);
-    }
-    // 字符键表达式
-    if (isKey(value)) {
-      const key = this.keyClip(value);
-      return key;
-    }
-    // number、string、boolean 类型
-    if (
-      typeOf.isNumber(value) ||
-      typeOf.isString(value) ||
-      typeOf.isBooloon(value)
-    ) {
-      return escape(value);
-    }
-    // null 类型
-    if (typeOf.isNull(value)) {
-      return 'null';
-    }
-    // object、 array 类型
-    if (typeOf.isArray(value) || typeOf.isObject(value)) {
-      return `cast(${escape(JSON.stringify(value))} as json)`;
-    }
-    return '';
-  }
-  aggrJsonValueClip(value: AggregateMixParamType<object>): string {
-    // AggregateCommand 类型
-    if (
-      typeOf.objStructMatch<AggregateCommandLike>(value, ['$value', '$type'])
-    ) {
-      return this.aggrControllerClip(value);
-    }
-    // 字符键表达式
-    if (isKey(value)) {
-      const key = this.keyClip(value);
-      return key;
-    }
-    // number、string、boolean 类型
-    if (
-      typeOf.isNumber(value) ||
-      typeOf.isString(value) ||
-      typeOf.isBooloon(value)
-    ) {
-      return escape(value);
-    }
-    // null 类型
-    if (typeOf.isNull(value)) {
-      return 'null';
-    }
-    //  array 类型
-    if (typeOf.isArray(value)) {
-      return `${AggregateJsonType.ARRAY}(${value
-        .map((item) => {
-          return this.aggrValueClip(item);
-        })
-        .join(', ')})`;
-    }
-    // object 类型
-    if (typeOf.isObject(value)) {
-      const obj = <SQLJsonObject>value;
-      const keys = <(keyof SQLJsonObject)[]>Object.keys(<SQLJsonObject>obj);
-      return `${AggregateJsonType.OBJECT}(${keys
-        .map((key) => {
-          const value = obj[key];
-          return `${escape(key)}, ${this.aggrValueClip(value)}`;
-        })
-        .join(',')})`;
-    }
-    return '';
-  }
-  aggrJsonClip(aggregate: AggregateCommandLike): string {
-    // 类型 值
-    const { $type, $value } = aggregate;
-    if (!$type) {
-      // 报错：ARGUMENTS_TYPE_ERROR
-      throw errHandler.createError(
-        MySQLErrorType.ARGUMENTS_TYPE_ERROR,
-        `aggregateCommand.type don't exist`
-      );
-    }
-    // 原始参数
-    const rawArgs = $value;
-    // 参数过少
-    if (!typeOf.isNotEmptyArr(rawArgs)) {
-      // 报错：ARGUMENTS_LENGTH_ERROR
-      throw errHandler.createError(
-        MySQLErrorType.ARGUMENTS_LENGTH_ERROR,
-        `Expected 1 arguments, but got 0`
-      );
-    }
-    // 对象
-    if ($type === AggregateJsonType.OBJECT) {
-      return sqlAggregateCommandClip.json_object(aggregate);
-    }
-    // 数组
-    if ($type === AggregateJsonType.ARRAY) {
-      return sqlAggregateCommandClip.json_array(aggregate);
-    }
-    // 数组追加
-    if ($type === AggregateJsonType.ARRAY_APPEND) {
-      return sqlAggregateCommandClip.json_array_append(aggregate);
-    }
-    if (
-      $type === AggregateJsonType.CONTAINS ||
-      $type === AggregateJsonType.CONTAINS_PATH
-    ) {
-      // 参数过少
-      if (rawArgs.length < 1) {
-        // 报错：ARGUMENTS_LENGTH_ERROR
-        throw errHandler.createError(
-          MySQLErrorType.ARGUMENTS_LENGTH_ERROR,
-          `Expected 1 arguments, but got ${rawArgs.length}`
-        );
-      }
-      return `${rawArgs[0]}`;
-    }
-
-    return '';
-  }
-  aggrControllerClip(aggregate: AggregateCommandLike): string {
-    // 类型 模式
-    const { $type, $mode } = aggregate;
-    if (
-      typeOf.objStructMatch(aggregate, ['$value', '$type']) &&
-      $mode === 'aggregate'
-    ) {
-      // 布尔操作符
-      if ($type === AggregateBooleanSimpleType.AND) {
-        return sqlAggregateCommandClip.and(aggregate);
-      }
-      if ($type === AggregateBooleanSimpleType.OR) {
-        return sqlAggregateCommandClip.or(aggregate);
-      }
-      if ($type === AggregateBooleanNegativeType.NOT) {
-        return sqlAggregateCommandClip.not(aggregate);
-      }
-      if ($type === AggregateBooleanNegativeType.NAND) {
-        return sqlAggregateCommandClip.nand(aggregate);
-      }
-      if ($type === AggregateBooleanNegativeType.NOR) {
-        return sqlAggregateCommandClip.nor(aggregate);
-      }
-      // 比较操作符
-      if ($type === AggregateCompareSimpleType.CMP) {
-        return sqlAggregateCommandClip.cmp(aggregate);
-      }
-      if ($type === AggregateCompareSimpleType.EQ) {
-        return sqlAggregateCommandClip.eq(aggregate);
-      }
-      if ($type === AggregateCompareSimpleType.NEQ) {
-        return sqlAggregateCommandClip.neq(aggregate);
-      }
-      if ($type === AggregateCompareSimpleType.LT) {
-        return sqlAggregateCommandClip.lt(aggregate);
-      }
-      if ($type === AggregateCompareSimpleType.LTE) {
-        return sqlAggregateCommandClip.lte(aggregate);
-      }
-      if ($type === AggregateCompareSimpleType.GT) {
-        return sqlAggregateCommandClip.gt(aggregate);
-      }
-      if ($type === AggregateCompareSimpleType.GTE) {
-        return sqlAggregateCommandClip.gte(aggregate);
-      }
-      if ($type === AggregateCompareFilterType.IN) {
-        return sqlAggregateCommandClip.in(aggregate);
-      }
-      if ($type === AggregateCompareFilterType.NIN) {
-        return sqlAggregateCommandClip.nin(aggregate);
-      }
-      // 计算操作符
-      if ($type === AggregateCalculationFunctionType.ABS) {
-        return sqlAggregateCommandClip.abs(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.CEIL) {
-        return sqlAggregateCommandClip.ceil(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.FLOOR) {
-        return sqlAggregateCommandClip.floor(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.ROUND) {
-        return sqlAggregateCommandClip.round(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.LN) {
-        return sqlAggregateCommandClip.ln(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.LOG10) {
-        return sqlAggregateCommandClip.log10(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.SIN) {
-        return sqlAggregateCommandClip.sin(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.ASIN) {
-        return sqlAggregateCommandClip.asin(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.COS) {
-        return sqlAggregateCommandClip.cos(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.ACOS) {
-        return sqlAggregateCommandClip.acos(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.TAN) {
-        return sqlAggregateCommandClip.tan(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.ATAN) {
-        return sqlAggregateCommandClip.atan(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.COT) {
-        return sqlAggregateCommandClip.cot(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.SQRT) {
-        return sqlAggregateCommandClip.sqrt(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.EXP) {
-        return sqlAggregateCommandClip.exp(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.SIGN) {
-        return sqlAggregateCommandClip.sign(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.LOG) {
-        return sqlAggregateCommandClip.log(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.MOD) {
-        return sqlAggregateCommandClip.mod(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.POW) {
-        return sqlAggregateCommandClip.pow(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.GREATEST) {
-        return sqlAggregateCommandClip.greatest(aggregate);
-      }
-      if ($type === AggregateCalculationFunctionType.LEAST) {
-        return sqlAggregateCommandClip.least(aggregate);
-      }
-      if ($type === AggregateCalculationSimpleType.ADD) {
-        return sqlAggregateCommandClip.add(aggregate);
-      }
-      if ($type === AggregateCalculationSimpleType.SUBTRACT) {
-        return sqlAggregateCommandClip.subtract(aggregate);
-      }
-      if ($type === AggregateCalculationSimpleType.MULTIPLY) {
-        return sqlAggregateCommandClip.multiply(aggregate);
-      }
-      if ($type === AggregateCalculationSimpleType.DIVIDE) {
-        return sqlAggregateCommandClip.divide(aggregate);
-      }
-      // 字符串操作
-      if ($type === AggregateStringType.LENGTH) {
-        return sqlAggregateCommandClip.length(aggregate);
-      }
-      if ($type === AggregateStringType.REVERSE) {
-        return sqlAggregateCommandClip.reverse(aggregate);
-      }
-      if ($type === AggregateStringType.TRIM) {
-        return sqlAggregateCommandClip.trim(aggregate);
-      }
-      if ($type === AggregateStringType.LOWER) {
-        return sqlAggregateCommandClip.lower(aggregate);
-      }
-      if ($type === AggregateStringType.UPPER) {
-        return sqlAggregateCommandClip.upper(aggregate);
-      }
-      if ($type === AggregateStringType.LEFT) {
-        return sqlAggregateCommandClip.left(aggregate);
-      }
-      if ($type === AggregateStringType.RIGHT) {
-        return sqlAggregateCommandClip.right(aggregate);
-      }
-      if ($type === AggregateStringType.REPLACE) {
-        return sqlAggregateCommandClip.replace(aggregate);
-      }
-      if ($type === AggregateStringType.SUBSTRING) {
-        return sqlAggregateCommandClip.substring(aggregate);
-      }
-      if ($type === AggregateStringType.INSERT) {
-        return sqlAggregateCommandClip.insert(aggregate);
-      }
-      if ($type === AggregateStringType.CONCAT) {
-        return sqlAggregateCommandClip.concat(aggregate);
-      }
-      // 累加操作符
-      if ($type === AggregateAccumulationType.AVG) {
-        return sqlAggregateCommandClip.avg(aggregate);
-      }
-      if ($type === AggregateAccumulationType.MAX) {
-        return sqlAggregateCommandClip.max(aggregate);
-      }
-      if ($type === AggregateAccumulationType.MIN) {
-        return sqlAggregateCommandClip.min(aggregate);
-      }
-      if ($type === AggregateAccumulationType.SUM) {
-        return sqlAggregateCommandClip.sum(aggregate);
-      }
-      if ($type === AggregateAccumulationType.COUNT) {
-        return sqlAggregateCommandClip.count(aggregate);
-      }
-      // 条件操作符
-      if ($type === AggregateConditionType.COND) {
-        return sqlAggregateCommandClip.cond(aggregate);
-      }
-      if ($type === AggregateConditionType.IFNULL) {
-        return sqlAggregateCommandClip.ifnull(aggregate);
-      }
-      // json 操作
-      if ($type === AggregateJsonType.OBJECT) {
-        return sqlAggregateCommandClip.json_object(aggregate);
-      }
-      if ($type === AggregateJsonType.ARRAY) {
-        return sqlAggregateCommandClip.json_array(aggregate);
-      }
-      if ($type === AggregateJsonType.ARRAY_APPEND) {
-        return sqlAggregateCommandClip.json_array_append(aggregate);
-      }
-    }
-    return '';
-  }
-  cmdValueClip(key: string, value: CommandMixParamType): string | null {
-    // Command 类型
-    if (typeOf.objStructMatch(value, ['$value', '$type'])) {
-      return this.cmdControllerClip(key, <Command>value);
-    }
-    // 字符键表达式
-    if (isKey(value)) {
-      const key = this.keyClip(value);
-      return key;
-    }
-    // number、string、boolean 类型
-    if (
-      typeOf.isNumber(value) ||
-      typeOf.isString(value) ||
-      typeOf.isBooloon(value)
-    ) {
-      return `${escape(value)}`;
-    }
-    // null 类型
-    if (typeOf.isNull(value)) {
-      return 'null';
-    }
-    // object、array 类型
-    if (typeOf.isObject(value) || typeOf.isArray(value)) {
-      return `cast(${escape(JSON.stringify(value))} as json)`;
-    }
-    return '';
-  }
-  cmdCompareClip(key: string, command: CommandLike): string {
-    // 类型 值
-    const { $type, $value } = command;
-    // 数组
-    if (typeOf.isNotEmptyArr($value)) {
-      // 片段
-      const clip: (string | null)[] = [];
-      // 原始参数
-      const rawArgs = <any[]>$value;
-      // 预处理参数
-      rawArgs.forEach((rawArg) => {
-        const arg = this.cmdValueClip(key, rawArg);
-        clip.push(arg);
-      });
-      // 字段
-      const fieldKey = this.keyClip(key);
-      // 简单比较操作符
-      if (clip[0] === 'null' && $type === CommandCompareSimpleType.EQ) {
-        return `${fieldKey} is ${clip[0]}`;
-      }
-      if (clip[0] === 'null' && $type === CommandCompareSimpleType.NEQ) {
-        return `${fieldKey} is not ${clip[0]}`;
-      }
-      if (
-        $type === CommandCompareSimpleType.EQ ||
-        $type === CommandCompareSimpleType.NEQ ||
-        $type === CommandCompareSimpleType.LT ||
-        $type === CommandCompareSimpleType.LTE ||
-        $type === CommandCompareSimpleType.GT ||
-        $type === CommandCompareSimpleType.GTE
-      ) {
-        return `${fieldKey} ${$type} ${clip[0]}`;
-      }
-      // 筛选比较操作符
-      if (AggregateCompareFilterType.IN || AggregateCompareFilterType.NIN) {
-        return `${fieldKey} ${$type} (${clip.join(', ')})`;
-      }
-    }
-    return '';
-  }
-  cmdLogicClip(key: string, command: CommandLike): string {
-    // 类型 值 模式
-    const { $type, $value } = command;
-    // 片段
-    const clip: (string | null)[] = [];
-    // 非空数组
-    if (typeOf.isNotEmptyArr($value)) {
-      // 原始参数
-      const rawArgs = $value;
-      // 预处理参数
-      rawArgs.forEach((rawArg) => {
-        const arg = this.cmdValueClip(key, rawArg);
-        clip.push(arg);
-      });
-      // 简单逻辑操作符
-      if (
-        $type === CommandLogicSimpleType.AND ||
-        $type === CommandLogicSimpleType.OR
-      ) {
-        return clip.join(` ${$type} `);
-      }
-      // 否定逻辑操作
-      if ($type === CommandLogicNegativeType.NOT) {
-        return `not (${clip[0]})`;
-      }
-      if ($type === CommandLogicNegativeType.NOR) {
-        return `not (${clip.join(` or `)})`;
-      }
-      if ($type === CommandLogicNegativeType.NAND) {
-        return `not (${clip.join(` and `)})`;
-      }
-    }
-    return '';
-  }
-  cmdControllerClip(
-    key: string,
-    command: CommandLike | AggregateCommandLike
-  ): string {
-    // 类型 值 模式
-    const { $type } = command;
-    if (typeOf.objStructMatch(command, ['$value', '$type'])) {
-      // 逻辑操作符
-      const logic = [
-        ...Object.values(CommandLogicSimpleType),
-        ...Object.values(CommandLogicNegativeType),
-      ];
-      if (logic.includes(<CommandLogicType>$type)) {
-        return `${this.cmdLogicClip(key, <CommandLike>command)}`;
-      }
-      // 比较操作符
-      const compare = [
-        ...Object.values(CommandCompareSimpleType),
-        ...Object.values(CommandCompareFilterType),
-      ];
-      if (compare.includes(<CommandCompareType>$type)) {
-        return `${this.cmdCompareClip(key, <CommandLike>command)}`;
-      }
-    }
-    return '';
-  }
   nameClip(name?: SQLName | SQLAlias): string {
     if (typeOf.isNotBlankStr(name)) {
       // string
@@ -600,10 +133,12 @@ class MySQLClip implements SqlClip {
           typeOf.objStructMatch(newfields[fieldKey], ['$value', '$type']) &&
           $mode === 'aggregate'
         ) {
-          const aggregate = <AggregateCommandLike>newfields[fieldKey];
+          const aggregate = <AggregateProps>newfields[fieldKey];
           const asKey = this.keyClip(fieldKey);
           newfieldsClip.push(
-            `${this.aggrControllerClip(aggregate)} as ${asKey}`
+            `${sqlAggregateCommandClip.aggrControllerClip(
+              aggregate
+            )} as ${asKey}`
           );
           return;
         }
@@ -772,10 +307,10 @@ class MySQLClip implements SqlClip {
             // Command 命令
             if (typeOf.objStructMatch(where[key], ['$value', '$type'])) {
               // 命令操作
-              const newWhere = <CommandLike>where[key];
+              const newWhere = <CommandProps>where[key];
               const { $mode } = newWhere;
               if ($mode === 'command') {
-                return this.cmdControllerClip(key, newWhere);
+                return sqlCommandClip.cmdControllerClip(key, newWhere);
               }
             }
             // 字段
@@ -857,10 +392,10 @@ class MySQLClip implements SqlClip {
             // Command 命令
             if (typeOf.objStructMatch(where[key], ['$value', '$type'])) {
               // 命令操作
-              const newWhere = <CommandLike>where[key];
+              const newWhere = <CommandProps>where[key];
               const { $mode } = newWhere;
               if ($mode === 'command') {
-                return this.cmdControllerClip(key, newWhere);
+                return sqlCommandClip.cmdControllerClip(key, newWhere);
               }
             }
             // null

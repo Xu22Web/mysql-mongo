@@ -1,4 +1,4 @@
-import { Connection, FieldInfo } from 'mysql';
+import { Connection, FieldInfo, OkPacket } from 'mysql';
 import { SpecificType, StringExtendsType } from '../../utils/utilsTypes';
 import { Aggregate } from '../aggregate/interface';
 import { AggregateCommand, AggregateKey } from '../aggregateCommand/interface';
@@ -13,16 +13,26 @@ import {
   SQLRegex,
   SQLSkip,
 } from '../sql/sqlGenerator/interface';
+
 /**
  * @description 记录数据
  */
 export type RowData<T> = {
   [P in keyof T]?: T[P] extends string | number | boolean | null | SQLJson
-    ? T[P] extends SQLJsonObject
-      ? Partial<T[P]>
-      : T[P]
+    ? T[P]
     : never;
 };
+
+/**
+ * @description 记录数据
+ */
+export type InsertData<T> = Partial<
+  | ConditionKey<T>
+  | ConditionJsonObjectKey<T>
+  | ConditionJsonArrayKey<T>
+  | RowData<T>
+>;
+
 /**
  * @description 过滤
  */
@@ -31,6 +41,7 @@ export type Filter<T> =
   | {
       [key: string]: boolean;
     };
+
 /**
  * @description 筛选条件
  */
@@ -39,19 +50,21 @@ export type Where<T> =
   | ConditionExtendsType<ConditionKey<T>>
   | ConditionExtendsType<ConditionJsonObjectKey<T>>
   | ConditionExtendsType<ConditionJsonArrayKey<T>>;
+
 /**
  * @description 类型扩展
  */
 export type ConditionExtendsType<T> = {
   [P in keyof T]?:
-    | (T[P] extends number | boolean | SQLJson | undefined
+    | (T[P] extends number | boolean | SQLJson
         ? T[P]
-        : T[P] extends string | undefined
-        ? RegExp | SQLRegex | SQLLike
+        : T[P] extends string
+        ? string | RegExp | SQLRegex | SQLLike
         : never)
     | CommandLike
     | null;
 };
+
 /**
  * @description 普通类型数组树
  */
@@ -67,23 +80,20 @@ export type JsonBaseArrayTree = (
  * @description 对象类型数组树
  */
 export type JsonObjectArrayTree = (SQLJsonObject | JsonObjectArrayTree)[];
+
 /**
  * @description 数组键
  */
-export type JsonArrayKey<T extends string, K extends SQLJsonArray> = K extends (
-  | string
-  | number
-  | boolean
-  | null
-)[]
-  ? JsonArrayIdentifier<T>
-  : K extends (infer P extends JsonBaseArrayTree)[]
-  ? JsonArrayIdentifier<JsonArrayKey<T, P>>
-  : K extends (infer P extends SQLJsonObject)[]
-  ? `${JsonObjectKey<JsonArrayIdentifier<T>, P>}`
-  : K extends (infer P extends JsonObjectArrayTree)[]
-  ? `${JsonArrayKey<JsonArrayIdentifier<T>, P>}`
-  : never;
+export type JsonArrayKey<T extends string, K extends SQLJsonArray> =
+  | (K extends (infer P extends JsonBaseArrayTree)[]
+      ? JsonArrayIdentifier<JsonArrayKey<T, P>>
+      : K extends (infer P extends SQLJsonObject)[]
+      ? `${JsonObjectKey<JsonArrayIdentifier<T>, P>}`
+      : K extends (infer P extends JsonObjectArrayTree)[]
+      ? `${JsonArrayKey<JsonArrayIdentifier<T>, P>}`
+      : never)
+  | JsonArrayIdentifier<T>;
+
 /**
  * @description 对象键
  */
@@ -102,6 +112,7 @@ export type JsonObjectKey<T extends string, K extends SQLJsonObject> = {
       : never
     : never;
 }[keyof K];
+
 /**
  * @description json 对象标识符
  */
@@ -109,10 +120,12 @@ export type JsonObjectIdentifier<
   T extends string = string,
   P extends string = string
 > = `${T}.${P}`;
+
 /**
  * @description json 数组标识符
  */
 export type JsonArrayIdentifier<T extends string = string> = `${T}[${number}]`;
+
 /**
  * @description 解析对象键
  */
@@ -133,7 +146,7 @@ export type ResolveJsonObjectKey<
         : never
       : never
     : Q extends keyof ResolveJsonObjectKey<T, P>
-    ? ResolveJsonObjectKey<T, P>[Q]
+    ? ResolveJsonObjectKey<T, P>
     : never
   : K extends `${JsonArrayIdentifier<infer P>}${string}`
   ? P extends keyof T
@@ -144,6 +157,7 @@ export type ResolveJsonObjectKey<
   : K extends keyof T
   ? T[K]
   : never;
+
 /**
  * @description 解析数组键
  */
@@ -152,7 +166,7 @@ export type ResolveJsonArrayKey<
   K extends string
 > = K extends `${JsonArrayIdentifier}${infer Q}`
   ? Q extends ''
-    ? T extends (infer M extends string | number | boolean | null)[]
+    ? T extends (infer M extends string | number | boolean | SQLJson | null)[]
       ? M
       : never
     : Q extends JsonArrayIdentifier<''>
@@ -181,10 +195,11 @@ export type ConditionJsonObjectKey<T> = {
         ? T[SpecificType<T, SQLJsonObject>]
         : never
     >
-  >]?: P extends AggregateKey<infer Q>
+  >]: P extends AggregateKey<infer Q>
     ? ResolveJsonObjectKey<T extends SQLJsonObject ? T : never, Q>
     : never;
 };
+
 /**
  * @description 条件数组类型键值
  */
@@ -196,24 +211,25 @@ export type ConditionJsonArrayKey<T> = {
         ? T[SpecificType<T, SQLJsonArray>]
         : never
     >
-  >]?: P extends AggregateKey<infer Q>
+  >]: P extends AggregateKey<infer Q>
     ? Q extends `${JsonArrayIdentifier<infer M>}${string}`
       ? M extends keyof T
-        ? ResolveJsonArrayKey<T[M] extends SQLJsonArray ? T[M] : never, Q>
+        ? T[M] extends SQLJsonArray
+          ? ResolveJsonArrayKey<T[M], Q>
+          : never
         : never
       : never
     : never;
 };
-
 /**
  * @description 条件类型键值
  */
 export type ConditionKey<T> = {
   [P in AggregateKey<
     StringExtendsType<keyof T>
-  >]?: P extends AggregateKey<`${infer U}`>
+  >]: P extends AggregateKey<`${infer U}`>
     ? U extends keyof T
-      ? Partial<T[U]>
+      ? T[U]
       : never
     : never;
 };
@@ -234,7 +250,7 @@ export type OrderBy<T> =
       [P in keyof T]?: 'asc' | 'desc' | '';
     }
   | {
-      [key: string]: 'asc' | 'desc' | '' | undefined;
+      [key: string]: 'asc' | 'desc' | '';
     };
 /**
  * @description 执行结果
@@ -242,19 +258,6 @@ export type OrderBy<T> =
 export type QueryResult<T> = {
   result: T;
   status: boolean;
-};
-/**
- * @description 确认包
- */
-export type OkPacket = {
-  fieldCount: number;
-  affectedRows: number;
-  insertId: number;
-  serverStatus?: number;
-  warningCount?: number;
-  message: string;
-  changedRows: number;
-  protocol41: boolean;
 };
 /**
  * @description 行数据
@@ -314,7 +317,7 @@ export type CollectionProps<T> = {
 /**
  * @description 集合
  */
-export interface Collection<T> {
+export interface Collection<T extends object> {
   /**
    * @description 集合名
    */
@@ -398,26 +401,26 @@ export interface Collection<T> {
    * @description 获取数据
    * @returns
    */
-  get(): Promise<QueryResult<RowData<T[] | []>>>;
+  get(): Promise<QueryResult<RowData<T[]>>>;
   /**
    * @description 添加数据
    * @param data
    */
-  add(data: RowData<T>): Promise<QueryResult<OkPacket | null>>;
+  add(data: RowData<T>): Promise<QueryResult<OkPacket>>;
   /**
    * @description 移除数据
    */
-  remove(): Promise<QueryResult<OkPacket | null>>;
+  remove(): Promise<QueryResult<OkPacket>>;
   /**
    * @description 更新数据
    * @param data
    */
-  update(data: RowData<T>): Promise<QueryResult<OkPacket | null>>;
+  update(data: InsertData<T>): Promise<QueryResult<OkPacket>>;
   /**
    * @description 设置数据
    * @param data
    */
-  set(data: RowData<T>): Promise<QueryResult<OkPacket | null>>;
+  set(data: InsertData<T>): Promise<QueryResult<OkPacket>>;
   /**
    * @description 获取字段
    */

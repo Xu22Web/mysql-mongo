@@ -2,7 +2,7 @@ import { Connection, FieldInfo, PoolConnection } from 'mysql';
 import { Database, DatabaseType } from '../database/interface';
 import { ConnectionController } from './interface';
 /**
- * @description mysql连接控制
+ * @description MySQL 连接控制
  * @example
  * const controller = new MySQLConnectionController(database: Database)
  */

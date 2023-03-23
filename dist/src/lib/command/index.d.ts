@@ -1,23 +1,23 @@
 import { AggregateCommand } from '../aggregateCommand/interface';
 import { Command, CommandMixParamType, CommandMode, CommandNumberParamType, CommandType } from './interface';
 /**
- * @description 命令操作
+ * @description MySQL命令操作
  */
 declare class MySQLCommand implements Command {
-    $value: CommandMixParamType[];
-    $type: CommandType;
     $mode: CommandMode;
+    $type: CommandType | undefined;
+    $value: CommandMixParamType[] | undefined;
     constructor(value?: CommandMixParamType[], type?: CommandType);
-    aggregate<T extends object = any>(): AggregateCommand<T>;
-    and(value: CommandMixParamType[]): Command;
-    and(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
-    or(value: CommandMixParamType[]): Command;
-    or(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
+    aggregate<T extends object = object>(): AggregateCommand<T>;
+    and(value: Command[]): Command;
+    and(value: Command, ...rest: Command[]): Command;
+    or(value: Command[]): Command;
+    or(value: Command, ...rest: Command[]): Command;
     not(value: Command): Command;
-    nor(value: CommandMixParamType[]): Command;
-    nor(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
-    nand(value: CommandMixParamType[]): Command;
-    nand(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
+    nor(value: Command[]): Command;
+    nor(value: Command, ...rest: Command[]): Command;
+    nand(value: Command[]): Command;
+    nand(value: Command, ...rest: Command[]): Command;
     eq(value: CommandMixParamType): Command;
     neq(value: CommandMixParamType): Command;
     lt(value: CommandNumberParamType): Command;

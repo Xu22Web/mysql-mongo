@@ -110,26 +110,26 @@ class MySQLDeleteGenerator implements DeleteGenerator {
   generate(): string {
     // 属性值
     const { $name, $where, $orderby, $limit } = this;
-    // 存在集合名
-    if (typeOf.isNotBlankStr($name)) {
-      // 筛选片段
-      const whereClip = sqlClip.whereClip($where);
-      // 排序片段
-      const orderByClip = sqlClip.orderByClip($orderby);
-      // 限制条数片段
-      const limitClip = sqlClip.limitClip($limit);
-      // 集合名
-      const nameClip = sqlClip.nameClip($name);
-      // sql
-      const sql = `delete from${nameClip}${whereClip}${orderByClip}${limitClip}`;
-
-      return sql;
+    // 不存在集合名
+    if (!typeOf.isNotBlankStr($name)) {
+      // 报错：SQLGENERATOR_PROPERTY_ERROR
+      throw errHandler.createError(
+        MySQLErrorType.SQLGENERATOR_PROPERTY_ERROR,
+        `In class 'MySQLDeleteGenerator', don't exist property '$name'!`
+      );
     }
-    // 报错：SQLGENERATOR_PROPERTY_ERROR
-    throw errHandler.createError(
-      MySQLErrorType.SQLGENERATOR_PROPERTY_ERROR,
-      `In class 'MySQLDeleteGenerator', don't exist property '$name'!`
-    );
+    // 筛选片段
+    const whereClip = sqlClip.whereClip($where);
+    // 排序片段
+    const orderByClip = sqlClip.orderByClip($orderby);
+    // 限制条数片段
+    const limitClip = sqlClip.limitClip($limit);
+    // 集合名
+    const nameClip = sqlClip.nameClip($name);
+    // sql
+    const sql = `delete from${nameClip}${whereClip}${orderByClip}${limitClip}`;
+
+    return sql;
   }
 }
 

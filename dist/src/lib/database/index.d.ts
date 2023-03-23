@@ -2,9 +2,12 @@ import { Connection, Pool } from 'mysql';
 import { Collection } from '../collection/interface';
 import { Command } from '../command/interface';
 import { ConnectionController } from '../connectionController/interface';
-import { DatabaseRegExp, DatabaseRegExpLike } from '../sql/sqlCondition/regExp/interface';
+import { RegExpLike, RegExpLikeConfig } from '../sql/sqlCondition/regExpLike/interface';
 import { Transaction } from '../transaction/interface';
 import { Database, DatabaseConfig, DatabaseType } from './interface';
+/**
+ * @description MySQL 数据库
+ */
 declare class MySQLDatabase<T extends DatabaseType> implements Database<T> {
     command: Command;
     connController: ConnectionController<T>;
@@ -12,8 +15,8 @@ declare class MySQLDatabase<T extends DatabaseType> implements Database<T> {
     $conn?: Connection;
     $pool?: Pool;
     constructor(config: DatabaseConfig<T>);
-    collection<T = any>(name: string): Collection<T>;
-    RegExp(regexp: RegExp | DatabaseRegExpLike): DatabaseRegExp;
+    collection<T extends object = object>(name: string): Collection<T>;
+    RegExp(regexp: RegExp | RegExpLikeConfig): RegExpLike;
     createPool(): Pool;
     runTransaction(callback: (transaction: Transaction) => any): Promise<any>;
     startTransaction(): Promise<Transaction>;

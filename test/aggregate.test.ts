@@ -11,6 +11,7 @@ const db = database(
     type: 'pool',
     jsonParse: true,
     tinyIntToBool: true,
+    debug: true,
   })
 );
 
@@ -26,8 +27,8 @@ type Test = {
 const $ = db.command.aggregate<Test>();
 const _ = db.command;
 
-describe('SQLGenerator', () => {
-  it.skip('project', async () => {
+describe('aggregate', () => {
+  it('project', async () => {
     const c = db.collection<Test>('test');
     expect(
       (
@@ -43,24 +44,24 @@ describe('SQLGenerator', () => {
     ).toMatchInlineSnapshot(`
       [
         RowDataPacket {
-          "_id": "Yt5G4CBq9sv2G5XqPNyoIWEPYfzGz5BE",
-          "id": "Yt5G4CBq9sv2G5XqPNyoIWEPYfzGz5BE",
+          "_id": "0.438318d53d62a",
+          "id": "0.438318d53d62a",
           "m": -1,
         },
         RowDataPacket {
-          "_id": "RCX9RSBRLC11ooa1D174At7Gr1Ktc7rE",
-          "id": "RCX9RSBRLC11ooa1D174At7Gr1Ktc7rE",
-          "m": 0,
+          "_id": "0.e36dd27a6c381",
+          "id": "0.e36dd27a6c381",
+          "m": -1,
         },
         RowDataPacket {
-          "_id": "G3QYsNv21ItdCDZpAY6JIk88aMpx297i",
-          "id": "G3QYsNv21ItdCDZpAY6JIk88aMpx297i",
-          "m": 1,
+          "_id": "0.3bd0947e5c9ad",
+          "id": "0.3bd0947e5c9ad",
+          "m": -1,
         },
       ]
     `);
   });
-  it.skip('addFields', async () => {
+  it('addFields', async () => {
     const c = db.collection<Test>('test');
     expect(
       (
@@ -79,21 +80,21 @@ describe('SQLGenerator', () => {
     ).toMatchInlineSnapshot(`
       [
         RowDataPacket {
-          "_test_": "1[100]",
+          "_test_": "-1[]",
           "d": 1,
         },
         RowDataPacket {
-          "_test_": "1[100]",
+          "_test_": "-1[]",
           "d": 1,
         },
         RowDataPacket {
-          "_test_": "1[100]",
+          "_test_": "-1[]",
           "d": 1,
         },
       ]
     `);
   });
-  it.skip('match', async () => {
+  it('match', async () => {
     const c = db.collection<Test>('test');
     expect(
       (
@@ -104,42 +105,9 @@ describe('SQLGenerator', () => {
           })
           .end()
       ).result.slice(0, 3)
-    ).toMatchInlineSnapshot(`
-      [
-        RowDataPacket {
-          "_id": "RCX9RSBRLC11ooa1D174At7Gr1Ktc7rE",
-          "_timeStamp": "1664186961018",
-          "a": 1,
-          "b": 2,
-          "c": 1,
-          "d": false,
-          "json": "{\\"c\\": [1]}",
-          "test": "[{\\"test\\": 1}]",
-        },
-        RowDataPacket {
-          "_id": "9607dY6OlJ0kU16XGP1n2t94wkvJFRUQ",
-          "_timeStamp": "1664091740968",
-          "a": 1,
-          "b": 0,
-          "c": 1,
-          "d": null,
-          "json": "{\\"c\\": [1]}",
-          "test": "[{\\"test\\": 1}]",
-        },
-        RowDataPacket {
-          "_id": "2bT0HbzSA6qc7dUR2aeP7qBF6fffyvAG",
-          "_timeStamp": "1664091744586",
-          "a": 1,
-          "b": 0,
-          "c": 2,
-          "d": null,
-          "json": "{\\"c\\": [1]}",
-          "test": "[{\\"test\\": 1}]",
-        },
-      ]
-    `);
+    ).toMatchInlineSnapshot('[]');
   });
-  it.skip('group', async () => {
+  it('group', async () => {
     expect(
       (
         await db
@@ -157,18 +125,10 @@ describe('SQLGenerator', () => {
           "c": 0,
           "m": 0,
         },
-        RowDataPacket {
-          "c": 1,
-          "m": 3,
-        },
-        RowDataPacket {
-          "c": 2,
-          "m": 14,
-        },
       ]
     `);
   });
-  it.skip('limit', async () => {
+  it('limit', async () => {
     expect(
       (
         await db.collection<Test>('test').aggregate().limit(1).end()
@@ -176,37 +136,44 @@ describe('SQLGenerator', () => {
     ).toMatchInlineSnapshot(`
       [
         RowDataPacket {
-          "_id": "Yt5G4CBq9sv2G5XqPNyoIWEPYfzGz5BE",
-          "_timeStamp": "1664091258149",
-          "a": 2,
-          "b": 2,
-          "c": 1,
-          "d": true,
-          "json": "{\\"c\\": [100]}",
-          "test": "[{\\"test\\": 1}]",
+          "_id": "0.438318d53d62a",
+          "_timeStamp": null,
+          "a": 0,
+          "b": 0,
+          "c": "-1",
+          "d": null,
+          "json": {
+            "b": 1,
+            "c": [],
+          },
+          "test": null,
         },
       ]
     `);
   });
-  it.skip('skip', async () => {
+  it('skip', async () => {
     const c = db.collection<Test>('test');
-    expect((await c.aggregate().limit(1).skip(1).end()).result.slice(0, 3))
-      .toMatchInlineSnapshot(`
-        [
-          RowDataPacket {
-            "_id": "RCX9RSBRLC11ooa1D174At7Gr1Ktc7rE",
-            "_timeStamp": "1664186961018",
-            "a": 1,
-            "b": 2,
-            "c": 1,
-            "d": false,
-            "json": "{\\"c\\": [100]}",
-            "test": "[{\\"test\\": 1}]",
+    expect(
+      (await c.aggregate().limit(1).skip(1).end()).result.slice(0, 3)
+    ).toMatchInlineSnapshot(`
+      [
+        RowDataPacket {
+          "_id": "0.438318d53d62a",
+          "_timeStamp": null,
+          "a": 0,
+          "b": 0,
+          "c": "-1",
+          "d": null,
+          "json": {
+            "b": 1,
+            "c": [],
           },
-        ]
-      `);
+          "test": null,
+        },
+      ]
+    `);
   });
-  it.skip('sort', async () => {
+  it('sort', async () => {
     const c = db.collection<Test>('test');
     expect(
       (await c.aggregate().sort({ '$json.c[0]': 'asc' }).end()).result.slice(
@@ -214,41 +181,50 @@ describe('SQLGenerator', () => {
         3
       )
     ).toMatchInlineSnapshot(`
-        [
-          RowDataPacket {
-            "_id": "Yt5G4CBq9sv2G5XqPNyoIWEPYfzGz5BE",
-            "_timeStamp": "1664091258149",
-            "a": 2,
-            "b": 2,
-            "c": 1,
-            "d": true,
-            "json": "{\\"c\\": [1]}",
-            "test": "[{\\"test\\": 1}]",
+      [
+        RowDataPacket {
+          "_id": "0.438318d53d62a",
+          "_timeStamp": null,
+          "a": 0,
+          "b": 0,
+          "c": "-1",
+          "d": null,
+          "json": {
+            "b": 1,
+            "c": [],
           },
-          RowDataPacket {
-            "_id": "RCX9RSBRLC11ooa1D174At7Gr1Ktc7rE",
-            "_timeStamp": "1664186961018",
-            "a": 1,
-            "b": 2,
-            "c": 1,
-            "d": false,
-            "json": "{\\"c\\": [1]}",
-            "test": "[{\\"test\\": 1}]",
+          "test": null,
+        },
+        RowDataPacket {
+          "_id": "0.e36dd27a6c381",
+          "_timeStamp": null,
+          "a": 0,
+          "b": 0,
+          "c": "-1",
+          "d": null,
+          "json": {
+            "b": 1,
+            "c": [],
           },
-          RowDataPacket {
-            "_id": "G3QYsNv21ItdCDZpAY6JIk88aMpx297i",
-            "_timeStamp": "1664186961018",
-            "a": 0,
-            "b": 2,
-            "c": 1,
-            "d": true,
-            "json": "{\\"c\\": [1]}",
-            "test": "[{\\"test\\": 1}]",
+          "test": null,
+        },
+        RowDataPacket {
+          "_id": "0.3bd0947e5c9ad",
+          "_timeStamp": null,
+          "a": 0,
+          "b": 0,
+          "c": "-1",
+          "d": null,
+          "json": {
+            "b": 1,
+            "c": [],
           },
-        ]
-      `);
+          "test": null,
+        },
+      ]
+    `);
   });
-  it.skip('count', async () => {
+  it('count', async () => {
     const c = db.collection<Test>('test');
     expect(
       (
@@ -261,12 +237,12 @@ describe('SQLGenerator', () => {
     ).toMatchInlineSnapshot(`
       [
         RowDataPacket {
-          "a": 3,
+          "a": 0,
         },
       ]
     `);
   });
-  it.skip('sortByCount', async () => {
+  it('sortByCount', async () => {
     const c = db.collection<Test>('test');
     expect(
       (
@@ -275,21 +251,13 @@ describe('SQLGenerator', () => {
     ).toMatchInlineSnapshot(`
       [
         RowDataPacket {
-          "_id": 3,
-          "count": 1,
-        },
-        RowDataPacket {
-          "_id": 5,
-          "count": 1,
-        },
-        RowDataPacket {
-          "_id": 7,
+          "_id": 32,
           "count": 1,
         },
       ]
     `);
   });
-  it.skip('sample', async () => {
+  it('sample', async () => {
     const c = db.collection<Test>('test');
     expect(
       (
@@ -299,29 +267,6 @@ describe('SQLGenerator', () => {
           .match({ '$json.c[0]': _.eq('$a') })
           .end()
       ).result.slice(0, 3)
-    ).toMatchInlineSnapshot(`
-      [
-        RowDataPacket {
-          "_id": "9607dY6OlJ0kU16XGP1n2t94wkvJFRUQ",
-          "_timeStamp": "1664091740968",
-          "a": 1,
-          "b": 0,
-          "c": 1,
-          "d": null,
-          "json": "{\\"c\\": [1]}",
-          "test": "[{\\"test\\": 1}]",
-        },
-        RowDataPacket {
-          "_id": "2bT0HbzSA6qc7dUR2aeP7qBF6fffyvAG",
-          "_timeStamp": "1664091744586",
-          "a": 1,
-          "b": 0,
-          "c": 2,
-          "d": null,
-          "json": "{\\"c\\": [1]}",
-          "test": "[{\\"test\\": 1}]",
-        },
-      ]
-    `);
+    ).toMatchInlineSnapshot('[]');
   });
 });

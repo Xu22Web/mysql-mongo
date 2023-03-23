@@ -79,21 +79,21 @@ class MySQLInsertGenerator implements InsertGenerator {
     // 属性值
     const { $name, $record } = this;
     // 存在集合名
-    if (typeOf.isNotBlankStr($name)) {
-      // 集合名
-      const nameClip = sqlClip.nameClip($name);
-      // 记录
-      const recordClip = sqlClip.recordClip($record);
-      // sql
-      const sql = `insert into${nameClip}${recordClip}`;
-
-      return sql;
+    if (!typeOf.isNotBlankStr($name)) {
+      // 报错：SQLGENERATOR_PROPERTY_ERROR
+      throw errHandler.createError(
+        MySQLErrorType.SQLGENERATOR_PROPERTY_ERROR,
+        `In class 'MySQLInsertGenerator', don't exist property '$name'!`
+      );
     }
-    // 报错：SQLGENERATOR_PROPERTY_ERROR
-    throw errHandler.createError(
-      MySQLErrorType.SQLGENERATOR_PROPERTY_ERROR,
-      `In class 'MySQLInsertGenerator', don't exist property '$name'!`
-    );
+    // 集合名
+    const nameClip = sqlClip.nameClip($name);
+    // 记录
+    const recordClip = sqlClip.recordClip($record);
+    // sql
+    const sql = `insert into${nameClip}${recordClip}`;
+
+    return sql;
   }
 }
 

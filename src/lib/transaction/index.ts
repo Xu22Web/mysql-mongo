@@ -4,6 +4,9 @@ import { Collection } from '../collection/interface';
 import { Database, DatabaseType } from '../database/interface';
 import { Transaction } from './interface';
 
+/**
+ * @description MySQl 事务
+ */
 class MySQLTransaction implements Transaction {
   $database: Database<DatabaseType>;
   $conn: Connection | PoolConnection;
@@ -11,7 +14,7 @@ class MySQLTransaction implements Transaction {
     this.$database = database;
     this.$conn = conn;
   }
-  collection<T = any>(name: string): Collection<T> {
+  collection<T extends object = object>(name: string): Collection<T> {
     const { jsonParse, tinyIntToBool } = this.$database.$config;
     const newCollection = new MySQLCollection<T>(
       this.$database,

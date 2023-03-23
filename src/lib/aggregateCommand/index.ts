@@ -21,257 +21,265 @@ import {
   AggregateStringType,
 } from './interface';
 
-class MySQLAggregateCommand<
-  K extends object = object,
-  T extends AggregateCommandType = any,
-  V extends (
-    | AggregateMixParamType<K>
-    | AggregateMixParamType<K>[]
-    | AggregateSeachOptions
-  )[] = any
-> implements AggregateCommand<K, T, V>
+/**
+ * @description MySQl 聚合命令
+ */
+
+class MySQLAggregateCommand<T extends object = object>
+  implements AggregateCommand<T>
 {
   $mode: AggregateCommandMode = 'aggregate';
-  $type: T | undefined = undefined;
-  $value: V | undefined = undefined;
-  constructor(value?: V, type?: T) {
+  $type: AggregateCommandType | undefined;
+  $value:
+    | (
+        | AggregateMixParamType<T>
+        | AggregateMixParamType<T>[]
+        | AggregateSeachOptions
+      )[]
+    | undefined;
+  constructor(
+    value?: (
+      | AggregateMixParamType<T>
+      | AggregateMixParamType<T>[]
+      | AggregateSeachOptions
+    )[],
+    type?: AggregateCommandType
+  ) {
     this.$value = value;
     this.$type = type;
   }
   and<
     P extends [
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>,
-      ...AggregateMixParamType<K>[]
+      AggregateMixParamType<T>,
+      AggregateMixParamType<T>,
+      ...AggregateMixParamType<T>[]
     ]
-  >(...values: P): AggregateCommand<K, AggregateBooleanSimpleType.AND, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateBooleanSimpleType.AND);
   }
   or<
     P extends [
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>,
-      ...AggregateMixParamType<K>[]
+      AggregateMixParamType<T>,
+      AggregateMixParamType<T>,
+      ...AggregateMixParamType<T>[]
     ]
-  >(...values: P): AggregateCommand<K, AggregateBooleanSimpleType.OR, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateBooleanSimpleType.OR);
   }
-  not<P extends [AggregateMixParamType<K>]>(
-    ...values: P
-  ): AggregateCommand<K, AggregateBooleanNegativeType.NOT, P> {
+  not<P extends [AggregateMixParamType<T>]>(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateBooleanNegativeType.NOT);
   }
   nor<
     P extends [
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>,
-      ...AggregateMixParamType<K>[]
+      AggregateMixParamType<T>,
+      AggregateMixParamType<T>,
+      ...AggregateMixParamType<T>[]
     ]
-  >(...values: P): AggregateCommand<K, AggregateBooleanNegativeType.NOR, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateBooleanNegativeType.NOR);
   }
   nand<
     P extends [
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>,
-      ...AggregateMixParamType<K>[]
+      AggregateMixParamType<T>,
+      AggregateMixParamType<T>,
+      ...AggregateMixParamType<T>[]
     ]
-  >(...values: P): AggregateCommand<K, AggregateBooleanNegativeType.NAND, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateBooleanNegativeType.NAND);
   }
-  cmp<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  cmp<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.CMP, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateCompareSimpleType.CMP);
   }
-  eq<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  eq<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.EQ, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateCompareSimpleType.EQ);
   }
-  neq<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  neq<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.NEQ, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateCompareSimpleType.NEQ);
   }
-  lt<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  lt<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.LT, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateCompareSimpleType.LT);
   }
-  lte<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  lte<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.LTE, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateCompareSimpleType.LTE);
   }
-  gt<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  gt<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.GT, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateCompareSimpleType.GT);
   }
-  gte<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  gte<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.GTE, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateCompareSimpleType.GTE);
   }
-  in<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>[]]>(
+  in<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>[]]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareFilterType.IN, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateCompareFilterType.IN);
   }
-  nin<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>[]]>(
+  nin<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>[]]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareFilterType.NIN, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateCompareFilterType.NIN);
   }
-  abs<P extends [] | [AggregateNumberParamType<K>]>(
+  abs<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.ABS, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.ABS
     );
   }
-  sqrt<P extends [] | [AggregateNumberParamType<K>]>(
+  sqrt<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.SQRT, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.SQRT
     );
   }
-  ln<P extends [] | [AggregateNumberParamType<K>]>(
+  ln<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.LN, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.LN
     );
   }
-  log10<P extends [] | [AggregateNumberParamType<K>]>(
+  log10<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.LOG10, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.LOG10
     );
   }
-  sin<P extends [] | [AggregateNumberParamType<K>]>(
+  sin<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.SIN, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.SIN
     );
   }
-  asin<P extends [] | [AggregateNumberParamType<K>]>(
+  asin<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.ASIN, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.ASIN
     );
   }
-  cos<P extends [] | [AggregateNumberParamType<K>]>(
+  cos<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.COS, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.COS
     );
   }
-  acos<P extends [] | [AggregateNumberParamType<K>]>(
+  acos<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.ACOS, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.ACOS
     );
   }
-  tan<P extends [] | [AggregateNumberParamType<K>]>(
+  tan<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.TAN, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.TAN
     );
   }
-  atan<P extends [] | [AggregateNumberParamType<K>]>(
+  atan<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.ATAN, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.ATAN
     );
   }
-  cot<P extends [] | [AggregateNumberParamType<K>]>(
+  cot<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.COT, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.COT
     );
   }
-  floor<P extends [] | [AggregateNumberParamType<K>]>(
+  floor<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.FLOOR, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.FLOOR
     );
   }
-  round<P extends [] | [AggregateNumberParamType<K>]>(
+  round<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.ROUND, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.ROUND
     );
   }
-  ceil<P extends [] | [AggregateNumberParamType<K>]>(
+  ceil<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.CEIL, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.CEIL
     );
   }
-  exp<P extends [] | [AggregateNumberParamType<K>]>(
+  exp<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.EXP, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.EXP
     );
   }
-  sign<P extends [] | [AggregateNumberParamType<K>]>(
+  sign<P extends [] | [AggregateNumberParamType<T>]>(
     this: ThisType<AggregateCommandLike>,
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.SIGN, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.SIGN
     );
   }
-  mod<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  mod<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.MOD, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.MOD
     );
   }
-  log<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  log<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.LOG, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.LOG
     );
   }
-  pow<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  pow<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.POW, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.POW
@@ -279,13 +287,11 @@ class MySQLAggregateCommand<
   }
   greatest<
     P extends [
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      ...AggregateNumberParamType<K>[]
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      ...AggregateNumberParamType<T>[]
     ]
-  >(
-    ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.GREATEST, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.GREATEST
@@ -293,13 +299,11 @@ class MySQLAggregateCommand<
   }
   least<
     P extends [
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      ...AggregateNumberParamType<K>[]
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      ...AggregateNumberParamType<T>[]
     ]
-  >(
-    ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.LEAST, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationFunctionType.LEAST
@@ -307,11 +311,11 @@ class MySQLAggregateCommand<
   }
   add<
     P extends [
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      ...AggregateNumberParamType<K>[]
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      ...AggregateNumberParamType<T>[]
     ]
-  >(...values: P): AggregateCommand<K, AggregateCalculationSimpleType.ADD, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationSimpleType.ADD
@@ -319,13 +323,11 @@ class MySQLAggregateCommand<
   }
   subtract<
     P extends [
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      ...AggregateNumberParamType<K>[]
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      ...AggregateNumberParamType<T>[]
     ]
-  >(
-    ...values: P
-  ): AggregateCommand<K, AggregateCalculationSimpleType.SUBTRACT, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationSimpleType.SUBTRACT
@@ -333,13 +335,11 @@ class MySQLAggregateCommand<
   }
   multiply<
     P extends [
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      ...AggregateNumberParamType<K>[]
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      ...AggregateNumberParamType<T>[]
     ]
-  >(
-    ...values: P
-  ): AggregateCommand<K, AggregateCalculationSimpleType.MULTIPLY, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationSimpleType.MULTIPLY
@@ -347,251 +347,245 @@ class MySQLAggregateCommand<
   }
   divide<
     P extends [
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      ...AggregateNumberParamType<K>[]
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      ...AggregateNumberParamType<T>[]
     ]
-  >(
-    ...values: P
-  ): AggregateCommand<K, AggregateCalculationSimpleType.DIVIDE, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(
       values,
       AggregateCalculationSimpleType.DIVIDE
     );
   }
-  trim<P extends [AggregateStringParamType<K>]>(
+  trim<P extends [AggregateStringParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.TRIM, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateStringType.TRIM);
   }
-  reverse<P extends [AggregateStringParamType<K>]>(
+  reverse<P extends [AggregateStringParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.REVERSE, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateStringType.REVERSE);
   }
-  length<P extends [AggregateStringParamType<K>]>(
+  length<P extends [AggregateStringParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.LENGTH, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateStringType.LENGTH);
   }
-  upper<P extends [AggregateStringParamType<K>]>(
+  upper<P extends [AggregateStringParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.UPPER, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateStringType.UPPER);
   }
-  lower<P extends [AggregateStringParamType<K>]>(
+  lower<P extends [AggregateStringParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.LOWER, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateStringType.LOWER);
   }
-  left<P extends [AggregateStringParamType<K>, AggregateNumberParamType<K>]>(
+  left<P extends [AggregateStringParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.LEFT, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateStringType.LEFT);
   }
-  right<P extends [AggregateStringParamType<K>, AggregateNumberParamType<K>]>(
+  right<P extends [AggregateStringParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.RIGHT, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateStringType.RIGHT);
   }
   replace<
     P extends [
-      AggregateStringParamType<K>,
-      AggregateStringParamType<K>,
-      AggregateStringParamType<K>
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>
     ]
-  >(...values: P): AggregateCommand<K, AggregateStringType.REPLACE, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateStringType.REPLACE);
   }
   insert<
     P extends [
-      AggregateStringParamType<K>,
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      AggregateStringParamType<K>
+      AggregateStringParamType<T>,
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      AggregateStringParamType<T>
     ]
-  >(...values: P): AggregateCommand<K, AggregateStringType.INSERT, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateStringType.INSERT);
   }
   substring<
     P extends [
-      AggregateStringParamType<K>,
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>
+      AggregateStringParamType<T>,
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>
     ]
-  >(...values: P): AggregateCommand<K, AggregateStringType.SUBSTRING, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateStringType.SUBSTRING);
   }
   concat<
     P extends [
-      AggregateStringParamType<K>,
-      AggregateStringParamType<K>,
-      ...AggregateStringParamType<K>[]
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>,
+      ...AggregateStringParamType<T>[]
     ]
-  >(...values: P): AggregateCommand<K, AggregateStringType.CONCAT, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateStringType.CONCAT);
   }
-  avg<P extends [AggregateNumberParamType<K>]>(
+  avg<P extends [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateAccumulationType.AVG, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateAccumulationType.AVG);
   }
-  max<P extends [AggregateNumberParamType<K>]>(
+  max<P extends [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateAccumulationType.MAX, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateAccumulationType.MAX);
   }
-  min<P extends [AggregateNumberParamType<K>]>(
+  min<P extends [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateAccumulationType.MIN, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateAccumulationType.MIN);
   }
-  sum<P extends [AggregateNumberParamType<K>]>(
+  sum<P extends [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateAccumulationType.SUM, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateAccumulationType.SUM);
   }
-  count<P extends [AggregateNumberParamType<K>]>(
+  count<P extends [AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateAccumulationType.COUNT, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateAccumulationType.COUNT);
   }
   cond<
     P extends [
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>
+      AggregateMixParamType<T>,
+      AggregateMixParamType<T>,
+      AggregateMixParamType<T>
     ]
-  >(...values: P): AggregateCommand<K, AggregateConditionType.COND, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateConditionType.COND);
   }
-  ifnull<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  ifnull<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateConditionType.IFNULL, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateConditionType.IFNULL);
   }
-  json_contains<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_contains<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.CONTAINS, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.CONTAINS);
   }
   json_contains_path<
     P extends [
-      AggregateMixParamType<K>,
+      AggregateMixParamType<T>,
       AggregateSeachOptions,
-      AggregateStringParamType<K>,
-      AggregateStringParamType<K>
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>
     ]
-  >(...values: P): AggregateCommand<K, AggregateJsonType.CONTAINS_PATH, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.CONTAINS_PATH);
   }
   json_search<
     P extends [
-      AggregateMixParamType<K>,
+      AggregateMixParamType<T>,
       AggregateSeachOptions,
-      AggregateMixParamType<K>
+      AggregateMixParamType<T>
     ]
-  >(...values: P): AggregateCommand<K, AggregateJsonType.SEARCH, P> {
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.SEARCH);
   }
   json_extract<
-    P extends [AggregateMixParamType<K>, AggregateStringParamType<K>[]]
-  >(...values: P): AggregateCommand<K, AggregateJsonType.EXTRACT, P> {
+    P extends [AggregateMixParamType<T>, AggregateStringParamType<T>[]]
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.EXTRACT);
   }
-  json_merge_preserve<P extends AggregateMixParamType<K>[]>(
+  json_merge_preserve<P extends AggregateMixParamType<T>[]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.MERGE_PRESERVE, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.MERGE_PRESERVE);
   }
-  json_merge_patch<P extends AggregateMixParamType<K>[]>(
+  json_merge_patch<P extends AggregateMixParamType<T>[]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.MERGE_PATCH, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.MERGE_PATCH);
   }
-  json_set<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_set<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.SET, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.SET);
   }
   json_insert<
-    P extends [AggregateMixParamType<K>, AggregateObjectParamType<K>]
-  >(...values: P): AggregateCommand<K, AggregateJsonType.INSERT, P> {
+    P extends [AggregateMixParamType<T>, AggregateObjectParamType<T>]
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.INSERT);
   }
   json_replace<
-    P extends [AggregateMixParamType<K>, AggregateObjectParamType<K>]
-  >(...values: P): AggregateCommand<K, AggregateJsonType.REPLACE, P> {
+    P extends [AggregateMixParamType<T>, AggregateObjectParamType<T>]
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.REPLACE);
   }
   json_remove<
-    P extends [AggregateMixParamType<K>, AggregateStringParamType<K>]
-  >(...values: P): AggregateCommand<K, AggregateJsonType.REMOVE, P> {
+    P extends [AggregateMixParamType<T>, AggregateStringParamType<T>]
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.REMOVE);
   }
   json_array_append<
-    P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]
-  >(...values: P): AggregateCommand<K, AggregateJsonType.ARRAY_APPEND, P> {
+    P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.ARRAY_APPEND);
   }
   json_array_insert<
-    P extends [
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>,
-      AggregateStringParamType<K>
-    ]
-  >(...values: P): AggregateCommand<K, AggregateJsonType.ARRAY_INSERT, P> {
+    P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]
+  >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.ARRAY_INSERT);
   }
-  json_object<P extends [AggregateObjectParamType<K>]>(
+  json_object<P extends [AggregateObjectParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.OBJECT, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.OBJECT);
   }
 
-  json_array<P extends [AggregateArrayParamType<K>]>(
+  json_array<P extends [AggregateArrayParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.ARRAY, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.ARRAY);
   }
-  json_type<P extends [AggregateMixParamType<K>]>(
+  json_type<P extends [AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.TYPE, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.TYPE);
   }
-  json_keys<P extends [AggregateMixParamType<K>]>(
+  json_keys<P extends [AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.KEYS, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.KEYS);
   }
-  json_depth<P extends [AggregateMixParamType<K>]>(
+  json_depth<P extends [AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.DEPTH, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.DEPTH);
   }
-  json_length<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_length<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.LENGTH, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.LENGTH);
   }
-  json_valid<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_valid<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.VALID, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.VALID);
   }
-  json_pretty<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_pretty<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.PRETTY, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.PRETTY);
   }
-  json_quote<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_quote<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.QUOTE, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.QUOTE);
   }
-  json_unquote<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_unquote<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.UNQUOTE, P> {
+  ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.UNQUOTE);
   }
 }

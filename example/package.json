@@ -9,11 +9,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^18.15.3",
+    "@types/node": "^18.15.5",
     "typescript": "^5.0.2"
   },
   "dependencies": {
-    "mysql-mongo": "^1.0.0",
+    "mysql-mongo": "link:..",
     "ts-node": "^10.9.1"
   }
 }

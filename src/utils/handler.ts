@@ -1,9 +1,9 @@
 import { FieldInfo, Types } from 'mysql';
-import typeOf from './typeOf';
 import {
   AggregateArrayKey,
   AggregateKey,
 } from '../lib/aggregateCommand/interface';
+import typeOf from './typeOf';
 
 /**
  * @description 生成数组
@@ -17,38 +17,29 @@ export const valuesToArr = <T>(
   that?: T
 ): T[] => {
   if (typeOf.isNotEmptyArr(value)) {
-    // value 为数组
-    value = <T[]>value;
     if (typeOf.isArray(rest)) {
-      // rest 为数组
-      rest = <T[]>rest;
-      if (that !== undefined) {
+      if (typeOf.objStructMatch(that, ['$type', '$value'])) {
         return [that, ...value, ...rest];
       }
       return [...value, ...rest];
     }
     if (typeOf.isNotUndefined(rest)) {
-      rest = <T>rest;
-      if (that !== undefined) {
+      if (typeOf.objStructMatch(that, ['$type', '$value'])) {
         return [that, ...value, rest];
       }
       return [...value, rest];
     }
+    return value;
   }
   if (typeOf.isNotUndefined(value)) {
-    // value 为数组
-    value = <T>value;
     if (typeOf.isArray(rest)) {
-      // rest 为数组
-      rest = <T[]>rest;
-      if (that !== undefined) {
+      if (typeOf.objStructMatch(that, ['$type', '$value'])) {
         return [that, value, ...rest];
       }
       return [value, ...rest];
     }
     if (typeOf.isNotUndefined(rest)) {
-      rest = <T>rest;
-      if (that !== undefined) {
+      if (typeOf.objStructMatch(that, ['$type', '$value'])) {
         return [that, value, rest];
       }
       return [value, rest];
@@ -76,82 +67,50 @@ export const valueToArr = <T>(value?: T, that?: T): T[] => {
 };
 
 /**
- * @description 生成参数数组
- * @param args
- * @returns
- */
-export const argsToArr = <T extends any[]>(args: T, length?: number) => {
-  // 第一个参数为数组
-  if (typeOf.isNotEmptyArr(args[0])) {
-    if (length) {
-      if (args[0].length === length) {
-        return args[0];
-      }
-    } else {
-      return args[0];
-    }
-  }
-  //  所有参数为数组
-  if (typeOf.isNotEmptyArr(args)) {
-    if (length) {
-      if (args.length === length) {
-        return args;
-      }
-    } else {
-      return args;
-    }
-  }
-  throw new Error(`An argument for 'args' was not provided`);
-};
-
-/**
  * @description 合并对象
  * @param target
  * @param source
  */
 export const objectMerge = (
   target: object,
-  source1: object,
-  source2?: object
+  ...sourceList: (object | undefined)[]
 ): object => {
-  // 属性
-  const keys = Object.keys(source1);
-  keys.forEach((key) => {
-    if (typeOf.isObject(source1[<keyof object>key])) {
+  const sources = sourceList.filter((s) => typeOf.isInsOf(s, Object));
+  const source = sources[0];
+  if (typeOf.isNullOrUndefined(source)) {
+    return target;
+  }
+  for (const key in source) {
+    if (typeOf.isObject(source[<keyof object>key])) {
       if (typeOf.isObject(target[<keyof object>key])) {
-        objectMerge(target[<keyof object>key], source1[<keyof object>key]);
-        return;
+        objectMerge(target[<keyof object>key], source[<keyof object>key]);
+        continue;
       }
       (<object>target[<keyof object>key]) = objectMerge(
         {},
-        source1[<keyof object>key]
+        source[<keyof object>key]
       );
-      return;
+      continue;
     }
-    if (typeOf.isArray(source1[<keyof object>key])) {
+
+    if (typeOf.isArray(source[<keyof object>key])) {
       if (typeOf.isArray(target[<keyof object>key])) {
-        (<any[]>target[<keyof object>key]) = [
-          ...(<any[]>target[<keyof object>key]),
-          ...(<any[]>source1[<keyof object>key]).map((item) =>
-            typeOf.isObject(item) ? objectMerge({}, item) : item
-          ),
-        ];
-        return;
+        objectMerge(target[<keyof object>key], source[<keyof object>key]);
+        continue;
       }
-      (<any[]>target[<keyof object>key]) = [
-        ...(<any[]>source1[<keyof object>key]).map((item) =>
-          typeOf.isObject(item) ? objectMerge({}, item) : item
-        ),
-      ];
-      return;
+      (<object>target[<keyof object>key]) = objectMerge(
+        [],
+        source[<keyof object>key]
+      );
+      continue;
     }
-    target[<keyof object>key] = source1[<keyof object>key];
-  });
-  if (typeOf.isObject(source2)) {
-    return objectMerge(target, source2);
+    target[<keyof object>key] = source[<keyof object>key];
   }
-  return target;
+
+  const restsSource = sources.slice(1);
+  return objectMerge(target, ...restsSource);
 };
+
 /**
  * @description 判断键
  * @param value
@@ -159,6 +118,7 @@ export const objectMerge = (
 export const isKey = (value: any): value is AggregateKey => {
   return typeOf.strMatch(value, /(?<=\$).*/);
 };
+
 /**
  * @description 判断键
  * @param value
@@ -166,6 +126,7 @@ export const isKey = (value: any): value is AggregateKey => {
 export const isArrayKey = (value: any): value is AggregateArrayKey => {
   return typeOf.strMatch(value, /.*\[\d+\]/);
 };
+
 /**
  * @description 获取所有键
  * @param value
@@ -174,6 +135,7 @@ export const getKey = (value: AggregateKey) => {
   const key = value.match(/(?<=\$).*/)![0];
   return key.split('.');
 };
+
 /**
  * @description 获取所有键
  * @param value
@@ -186,6 +148,7 @@ export const getArrayKey = (value: AggregateArrayKey): string[] => {
   }
   return [key![1], key![2]];
 };
+
 /**
  * @description 获取所有键
  * @param value
@@ -200,6 +163,7 @@ export const getAllKey = (value: AggregateKey) => {
   });
   return allKeys;
 };
+
 /**
  * @description JSON字符串结果转换为对象
  * @param fields
@@ -216,6 +180,7 @@ export const parseJson = (fields: FieldInfo[], results: any[]) => {
       });
     });
 };
+
 /**
  * @description 对象、数组转化JSON字符串
  * @param fields
@@ -231,6 +196,7 @@ export const stringfyJson = (data: object) => {
   }
   return data;
 };
+
 /**
  * @description tinyint(1)结果转布尔
  * @param fields

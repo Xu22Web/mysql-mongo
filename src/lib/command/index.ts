@@ -10,55 +10,50 @@ import {
   CommandLogicSimpleType,
   CommandMixParamType,
   CommandMode,
-  CommandNoneType,
   CommandNumberParamType,
-  CommandType,
+  CommandType
 } from './interface';
 
 /**
- * @description 命令操作
+ * @description MySQL命令操作
  */
 class MySQLCommand implements Command {
-  $value: CommandMixParamType[];
-  $type: CommandType;
-  $mode: CommandMode;
-  constructor(
-    value: CommandMixParamType[] = [],
-    type: CommandType = CommandNoneType.NONE
-  ) {
+  $mode: CommandMode = 'command';
+  $type: CommandType | undefined;
+  $value: CommandMixParamType[] | undefined;
+  constructor(value?: CommandMixParamType[], type?: CommandType) {
     this.$value = value;
     this.$type = type;
-    this.$mode = 'command';
   }
-  aggregate<T extends object = any>(): AggregateCommand<T> {
+  aggregate<T extends object = object>(): AggregateCommand<T> {
     return new MySQLAggregateCommand<T>();
   }
-  and(value: CommandMixParamType[]): Command;
-  and(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
+  and(value: Command[]): Command;
+  and(value: Command, ...rest: Command[]): Command;
   and(value: any, ...rest: any[]): Command {
-    const results = valuesToArr<CommandMixParamType>(value, rest, this);
+    const results = valuesToArr<Command>(value, rest, this);
     return new MySQLCommand(results, CommandLogicSimpleType.AND);
   }
-  or(value: CommandMixParamType[]): Command;
-  or(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
+  or(value: Command[]): Command;
+  or(value: Command, ...rest: Command[]): Command;
   or(value: any, ...rest: any[]): Command {
-    const results = valuesToArr<CommandMixParamType>(value, rest, this);
+    const results = valuesToArr<Command>(value, rest, this);
     return new MySQLCommand(results, CommandLogicSimpleType.OR);
   }
   not(value: Command): Command {
-    const results = valueToArr<CommandMixParamType>(value);
+    const results = valueToArr<Command>(value);
     return new MySQLCommand(results, CommandLogicNegativeType.NOT);
   }
-  nor(value: CommandMixParamType[]): Command;
-  nor(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
+  nor(value: Command[]): Command;
+  nor(value: Command, ...rest: Command[]): Command;
   nor(value: any, ...rest: any[]): Command {
-    const results = valuesToArr<CommandMixParamType>(value, rest, this);
+    const results = valuesToArr<Command>(value, rest, this);
     return new MySQLCommand(results, CommandLogicNegativeType.NOR);
   }
-  nand(value: CommandMixParamType[]): Command;
-  nand(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
+  nand(value: Command[]): Command;
+  nand(value: Command, ...rest: Command[]): Command;
   nand(value: any, ...rest: any[]): Command {
-    const results = valuesToArr<CommandMixParamType>(value, rest, this);
+    const results = valuesToArr<Command>(value, rest, this);
     return new MySQLCommand(results, CommandLogicNegativeType.NAND);
   }
   eq(value: CommandMixParamType): Command {
@@ -120,3 +115,4 @@ class MySQLCommand implements Command {
 const cmd = new MySQLCommand();
 
 export { cmd, MySQLCommand };
+

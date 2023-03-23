@@ -14,17 +14,11 @@ export declare const valuesToArr: <T>(value: T | T[], rest: T | T[], that?: T | 
  */
 export declare const valueToArr: <T>(value?: T | undefined, that?: T | undefined) => T[];
 /**
- * @description 生成参数数组
- * @param args
- * @returns
- */
-export declare const argsToArr: <T extends any[]>(args: T, length?: number) => any[];
-/**
  * @description 合并对象
  * @param target
  * @param source
  */
-export declare const objectMerge: (target: object, source1: object, source2?: object) => object;
+export declare const objectMerge: (target: object, ...sourceList: (object | undefined)[]) => object;
 /**
  * @description 判断键
  * @param value

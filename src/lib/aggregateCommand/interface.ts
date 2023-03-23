@@ -1,5 +1,13 @@
 import { SQLJsonArray, SQLJsonObject } from '../sql/sqlGenerator/interface';
-
+/**
+ * @description 无类型
+ */
+export enum AggregateNoneType {
+  /**
+   * @description
+   */
+  NONE = 'none',
+}
 /**
  * @description 简单布尔操作符
  */
@@ -491,6 +499,7 @@ export type AggregateCompareType =
  * @description 聚合操作类型
  */
 export type AggregateCommandType =
+  | AggregateNoneType
   | AggregateCalculationType
   | AggregateBooleanType
   | AggregateCompareType
@@ -613,518 +622,507 @@ export type AggregateStringParamType<T extends object> = AggregateParamType<
 /**
  * @description 类聚合操作类型
  */
-export type AggregateCommandLike<
-  K extends object = any,
-  T extends AggregateCommandType = any,
-  V extends (
-    | AggregateMixParamType<K>
-    | AggregateMixParamType<K>[]
-    | AggregateSeachOptions
-  )[] = any
-> = {
+export type AggregateCommandLike = Partial<AggregateProps>;
+/**
+ * }@description 聚合属性
+ */
+export interface AggregateProps {
+  /**
+   * @description 聚合模式
+   */
   $mode: AggregateCommandMode;
-  $type: T;
-  $value: V;
-};
-
+  /**
+   * @description 聚合类型
+   */
+  $type: AggregateCommandType;
+  /**
+   * @description 聚合值
+   */
+  $value: (
+    | AggregateMixParamType
+    | AggregateMixParamType[]
+    | AggregateSeachOptions
+  )[];
+}
 /**
  * @description 聚合操作
  */
-export interface AggregateCommand<
-  K extends object = any,
-  T extends AggregateCommandType = any,
-  V extends (
-    | AggregateMixParamType<K>
-    | AggregateMixParamType<K>[]
-    | AggregateSeachOptions
-  )[] = any
-> {
+export interface AggregateCommand<T extends object = object>
+  extends AggregateCommandLike {
   /**
    * @description 聚合模式
    * @param values
    */
   $mode: AggregateCommandMode;
   /**
-   * @description 聚合值
-   * @param values
-   */
-  $value: V | undefined;
-  /**
-   * @description 聚合类型
-   * @param values
-   */
-  $type: T | undefined;
-  /**
    * @description 逻辑操作符 且
    * @param values
    */
   and<
     P extends [
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>,
-      ...AggregateMixParamType<K>[]
+      AggregateMixParamType<T>,
+      AggregateMixParamType<T>,
+      ...AggregateMixParamType<T>[]
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateBooleanSimpleType.AND, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 逻辑操作符 或
    * @param values
    */
   or<
     P extends [
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>,
-      ...AggregateMixParamType<K>[]
+      AggregateMixParamType<T>,
+      AggregateMixParamType<T>,
+      ...AggregateMixParamType<T>[]
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateBooleanSimpleType.OR, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 逻辑操作符 非
    * @param values
    */
-  not<P extends [AggregateMixParamType<K>]>(
-    ...values: P
-  ): AggregateCommand<K, AggregateBooleanNegativeType.NOT, P>;
+  not<P extends [AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
   /**
    * @description 逻辑操作符 都不
    * @param values
    */
   nor<
     P extends [
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>,
-      ...AggregateMixParamType<K>[]
+      AggregateMixParamType<T>,
+      AggregateMixParamType<T>,
+      ...AggregateMixParamType<T>[]
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateBooleanNegativeType.NOR, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 逻辑操作符 不都
    * @param values
    */
   nand<
     P extends [
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>,
-      ...AggregateMixParamType<K>[]
+      AggregateMixParamType<T>,
+      AggregateMixParamType<T>,
+      ...AggregateMixParamType<T>[]
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateBooleanNegativeType.NAND, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 比较操作符 比较
    * @param values
    */
-  cmp<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  cmp<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.CMP, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 比较操作符 等于
    * @param values
    */
-  eq<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  eq<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.EQ, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 比较操作符 不等于
    * @param values
    */
-  neq<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  neq<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.NEQ, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 比较操作符 小于
    * @param values
    */
-  lt<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  lt<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.LT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 比较操作符 小于等于
    * @param values
    */
-  lte<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  lte<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.LTE, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 比较操作符 大于
    * @param values
    */
-  gt<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  gt<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.GT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 比较操作符 大于等于
    * @param values
    */
-  gte<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  gte<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareSimpleType.GTE, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 比较作符  包含在给定的数据内
    * @param values
    */
-  in<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>[]]>(
+  in<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>[]]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareFilterType.IN, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 比较操作符 不包含在给定的数据内
    * @param values
    */
-  nin<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>[]]>(
+  nin<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>[]]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCompareFilterType.NIN, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 绝对值
    * @param values
    */
-  abs<P extends [] | [AggregateNumberParamType<K>]>(
+  abs<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.ABS, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 向上取整
    * @param values
    */
-  ceil<P extends [] | [AggregateNumberParamType<K>]>(
+  ceil<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.CEIL, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 向下取整
    * @param values
    */
-  floor<P extends [] | [AggregateNumberParamType<K>]>(
+  floor<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.FLOOR, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 四舍五入
    * @param values
    */
-  round<P extends [] | [AggregateNumberParamType<K>] | []>(
+  round<P extends [] | [AggregateNumberParamType<T>] | []>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.ROUND, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 底数e对数
    * @param values
    */
-  ln<P extends [] | [AggregateNumberParamType<K>] | []>(
+  ln<P extends [] | [AggregateNumberParamType<T>] | []>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.LN, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 底数10对数
    * @param values
    */
-  log10<P extends [] | [AggregateNumberParamType<K>] | []>(
+  log10<P extends [] | [AggregateNumberParamType<T>] | []>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.LOG10, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 正弦
    * @param values
    */
-  sin<P extends [] | [AggregateNumberParamType<K>] | []>(
+  sin<P extends [] | [AggregateNumberParamType<T>] | []>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.SIN, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 反正弦
    * @param values
    */
-  asin<P extends [] | [AggregateNumberParamType<K>] | []>(
+  asin<P extends [] | [AggregateNumberParamType<T>] | []>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.ASIN, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 余弦
    * @param values
    */
-  cos<P extends [] | [AggregateNumberParamType<K>] | []>(
+  cos<P extends [] | [AggregateNumberParamType<T>] | []>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.COS, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 反余弦
    * @param values
    */
-  acos<P extends [] | [AggregateNumberParamType<K>] | []>(
+  acos<P extends [] | [AggregateNumberParamType<T>] | []>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.ACOS, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 正切
    * @param values
    */
-  tan<P extends [] | [AggregateNumberParamType<K>] | []>(
+  tan<P extends [] | [AggregateNumberParamType<T>] | []>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.TAN, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 反正切
    * @param values
    */
-  atan<P extends [] | [AggregateNumberParamType<K>] | []>(
+  atan<P extends [] | [AggregateNumberParamType<T>] | []>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.ATAN, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 余切
    * @param values
    */
-  cot<P extends [] | [AggregateNumberParamType<K>] | []>(
+  cot<P extends [] | [AggregateNumberParamType<T>] | []>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.COT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 平方根
    * @param values
    */
-  sqrt<P extends [] | [AggregateNumberParamType<K>] | []>(
+  sqrt<P extends [] | [AggregateNumberParamType<T>] | []>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.SQRT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description e的n次方
    * @param values
    */
-  exp<P extends [] | [AggregateNumberParamType<K>] | []>(
+  exp<P extends [] | [AggregateNumberParamType<T>] | []>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.EXP, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 取符号
    * @param values
    */
-  sign<P extends [] | [AggregateNumberParamType<K>] | []>(
+  sign<P extends [] | [AggregateNumberParamType<T>] | []>(
     this: ThisType<AggregateCommandLike>,
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.SIGN, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 对数
    * @param values
    */
-  log<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  log<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.LOG, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 取模
    * @param values
    */
-  mod<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  mod<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.MOD, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 指数次幂
    * @param values
    */
-  pow<P extends [AggregateNumberParamType<K>, AggregateNumberParamType<K>]>(
+  pow<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.POW, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 数组最大值
    * @param values
    */
   greatest<
     P extends [
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      ...AggregateNumberParamType<K>[]
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      ...AggregateNumberParamType<T>[]
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.GREATEST, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 数组最小值
    * @param values
    */
   least<
     P extends [
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      ...AggregateNumberParamType<K>[]
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      ...AggregateNumberParamType<T>[]
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationFunctionType.LEAST, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 加法
    * @param values
    */
   add<
     P extends [
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      ...AggregateNumberParamType<K>[]
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      ...AggregateNumberParamType<T>[]
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationSimpleType.ADD, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 减法
    * @param values
    */
   subtract<
     P extends [
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      ...AggregateNumberParamType<K>[]
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      ...AggregateNumberParamType<T>[]
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationSimpleType.SUBTRACT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description  乘法
    * @param values
    */
   multiply<
     P extends [
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      ...AggregateNumberParamType<K>[]
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      ...AggregateNumberParamType<T>[]
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationSimpleType.MULTIPLY, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 除法
    * @param values
    */
   divide<
     P extends [
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      ...AggregateNumberParamType<K>[]
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      ...AggregateNumberParamType<T>[]
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateCalculationSimpleType.DIVIDE, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 字符串长度
    * @param values
    */
-  length<P extends [AggregateStringParamType<K>]>(
+  length<P extends [AggregateStringParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.LENGTH, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 字符串反转（逆序)
    * @param values
    */
-  reverse<P extends [AggregateStringParamType<K>]>(
+  reverse<P extends [AggregateStringParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.REVERSE, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 删除字符串左右两侧的空格
    * @param values
    */
-  trim<P extends [AggregateStringParamType<K>]>(
+  trim<P extends [AggregateStringParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.TRIM, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 将字符串中的字母转换为小写
    * @param values
    */
-  lower<P extends [AggregateStringParamType<K>]>(
+  lower<P extends [AggregateStringParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.LOWER, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 将字符串中的字母转换为大写
    * @param values
    */
-  upper<P extends [AggregateStringParamType<K>]>(
+  upper<P extends [AggregateStringParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.UPPER, P>;
+  ): AggregateCommand<T>;
   /**
    * @description  从左侧字截取符串
    * @param values 字符串 长度
    */
-  left<P extends [AggregateStringParamType<K>, AggregateNumberParamType<K>]>(
+  left<P extends [AggregateStringParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.LEFT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 从右侧字截取符串
    * @param values 字符串 长度
    */
-  right<P extends [AggregateStringParamType<K>, AggregateNumberParamType<K>]>(
+  right<P extends [AggregateStringParamType<T>, AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.RIGHT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 插入字符串
    * @param values 字符 开始位置 长度 插入字符
    */
   insert<
     P extends [
-      AggregateStringParamType<K>,
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>,
-      AggregateStringParamType<K>
+      AggregateStringParamType<T>,
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>,
+      AggregateStringParamType<T>
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.INSERT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 替换字符串
    * @param values 字符 搜索字符 替换字符
    */
   replace<
     P extends [
-      AggregateStringParamType<K>,
-      AggregateStringParamType<K>,
-      AggregateStringParamType<K>
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.REPLACE, P>;
+  ): AggregateCommand<T>;
   /**
    * @description  截取字符串
    * @param values 字符 开始位置 长度
    */
   substring<
     P extends [
-      AggregateStringParamType<K>,
-      AggregateNumberParamType<K>,
-      AggregateNumberParamType<K>
+      AggregateStringParamType<T>,
+      AggregateNumberParamType<T>,
+      AggregateNumberParamType<T>
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.SUBSTRING, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 合并字符串
    * @param values
    */
   concat<
     P extends [
-      AggregateStringParamType<K>,
-      AggregateStringParamType<K>,
-      ...AggregateStringParamType<K>[]
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>,
+      ...AggregateStringParamType<T>[]
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateStringType.CONCAT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 平均值
    * @param values
    */
-  avg<P extends [AggregateNumberParamType<K>]>(
+  avg<P extends [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateAccumulationType.AVG, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 最大值
    * @param values
    */
-  max<P extends [AggregateNumberParamType<K>]>(
+  max<P extends [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateAccumulationType.MAX, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 最小值
    * @param values
    */
-  min<P extends [AggregateNumberParamType<K>]>(
+  min<P extends [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateAccumulationType.MIN, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 求和
    * @param values
    */
-  sum<P extends [AggregateNumberParamType<K>]>(
+  sum<P extends [AggregateNumberParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateAccumulationType.SUM, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 累加
    * @param values
    */
-  count<P extends [AggregateNumberParamType<K>]>(
+  count<P extends [AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateAccumulationType.COUNT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 布尔表达式
    * @param values 判断条件 真值返回值 假值返回值
@@ -1133,202 +1131,198 @@ export interface AggregateCommand<
    */
   cond<
     P extends [
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>
+      AggregateMixParamType<T>,
+      AggregateMixParamType<T>,
+      AggregateMixParamType<T>
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateConditionType.COND, P>;
+  ): AggregateCommand<T>;
   /**
    * @description 替换null表达式
    * @param values
    * @param replaceValue
    */
-  ifnull<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  ifnull<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateConditionType.IFNULL, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 包含
    * @param values json 匹配值
    */
-  json_contains<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_contains<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.CONTAINS, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 路径包含
    * @param values json option path destpath
    */
   json_contains_path<
     P extends [
-      AggregateMixParamType<K>,
+      AggregateMixParamType<T>,
       AggregateSeachOptions,
-      AggregateStringParamType<K>,
-      AggregateStringParamType<K>
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.CONTAINS_PATH, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 查找
    * @param values json option searchValue
    */
   json_search<
     P extends [
-      AggregateMixParamType<K>,
+      AggregateMixParamType<T>,
       AggregateSeachOptions,
-      AggregateMixParamType<K>
+      AggregateMixParamType<T>
     ]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.SEARCH, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 提取路径
    * @param values json paths
    */
   json_extract<
-    P extends [AggregateMixParamType<K>, AggregateStringParamType<K>[]]
+    P extends [AggregateMixParamType<T>, AggregateStringParamType<T>[]]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.EXTRACT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 合并，保留重复的键
    * @param values
    */
-  json_merge_preserve<P extends AggregateMixParamType<K>[]>(
+  json_merge_preserve<P extends AggregateMixParamType<T>[]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.MERGE_PRESERVE, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 合并，替换重复键的值
    * @param values
    */
-  json_merge_patch<P extends AggregateMixParamType<K>[]>(
+  json_merge_patch<P extends AggregateMixParamType<T>[]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.MERGE_PATCH, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 设置
    * @param values json setValue
    */
-  json_set<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_set<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.SET, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 插入
    * @param values json insertValue
    */
   json_insert<
-    P extends [AggregateMixParamType<K>, AggregateObjectParamType<K>]
+    P extends [AggregateMixParamType<T>, AggregateObjectParamType<T>]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.INSERT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 替换
    * @param values json replaceValue
    */
   json_replace<
-    P extends [AggregateMixParamType<K>, AggregateObjectParamType<K>]
+    P extends [AggregateMixParamType<T>, AggregateObjectParamType<T>]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.REPLACE, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 移除
    * @param values json path
    */
   json_remove<
-    P extends [AggregateMixParamType<K>, AggregateStringParamType<K>]
+    P extends [AggregateMixParamType<T>, AggregateStringParamType<T>]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.REMOVE, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 向数组尾部追加数据
    * @param values json value path
    */
   json_array_append<
-    P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]
+    P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.ARRAY_APPEND, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 向数组插入数据
    * @param values json value path
    */
   json_array_insert<
-    P extends [
-      AggregateMixParamType<K>,
-      AggregateMixParamType<K>,
-      AggregateStringParamType<K>
-    ]
+    P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]
   >(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.ARRAY_INSERT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 对象
    * @param values
    */
-  json_object<P extends [AggregateObjectParamType<K>]>(
+  json_object<P extends [AggregateObjectParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.OBJECT, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 数组
    * @param values
    */
-  json_array<P extends [AggregateArrayParamType<K>]>(
+  json_array<P extends [AggregateArrayParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.ARRAY, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 字段类型
    * @param values
    */
-  json_type<P extends [AggregateMixParamType<K>]>(
+  json_type<P extends [AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.TYPE, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 键
    * @param values
    */
-  json_keys<P extends [AggregateMixParamType<K>]>(
+  json_keys<P extends [AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.KEYS, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 深度
    * @param values
    */
-  json_depth<P extends [AggregateMixParamType<K>]>(
+  json_depth<P extends [AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.DEPTH, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 长度
    * @param values json path
    */
-  json_length<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_length<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.LENGTH, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 验证
    * @param values
    */
-  json_valid<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_valid<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.VALID, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 美化
    * @param values
    */
-  json_pretty<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_pretty<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.PRETTY, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 键
    * @param values
    */
-  json_quote<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_quote<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.QUOTE, P>;
+  ): AggregateCommand<T>;
   /**
    * @description json 取消引用
    * @param values
    */
-  json_unquote<P extends [AggregateMixParamType<K>, AggregateMixParamType<K>]>(
+  json_unquote<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
-  ): AggregateCommand<K, AggregateJsonType.UNQUOTE, P>;
+  ): AggregateCommand<T>;
 }

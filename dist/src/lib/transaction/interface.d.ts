@@ -18,5 +18,5 @@ export interface Transaction {
      * @description 集合
      * @param name
      */
-    collection<T = any>(name: string): Collection<T>;
+    collection<T extends object = object>(name: string): Collection<T>;
 }

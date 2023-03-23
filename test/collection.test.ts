@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { defineConfig } from '../';
 import { database } from '../src/lib/database';
+import { defineConfig } from '../src/utils/defineConfig';
 
 const db = database(
   defineConfig({
@@ -11,10 +11,12 @@ const db = database(
     type: 'pool',
     jsonParse: true,
     tinyIntToBool: true,
+    debug: true,
   })
 );
 
 type Test = {
+  _id: string;
   a: number;
   b: number;
   c: number;
@@ -22,11 +24,12 @@ type Test = {
   test: string;
 };
 
-const $ = db.command.aggregate<Test>();
 const _ = db.command;
 
-describe('SQLGenerator', () => {
-  it.skip('get', async () => {
+const _id = Math.random().toString(16);
+
+describe('collection', () => {
+  it('get', async () => {
     expect(
       await db
         .collection<Test>('test')
@@ -38,46 +41,47 @@ describe('SQLGenerator', () => {
           '$json.c[0]': false,
         })
         .limit(1)
-        .skip(0)
+        .skip(2)
         .get()
     ).toMatchInlineSnapshot(`
       {
-        "queryStatus": false,
         "result": [],
         "status": false,
       }
     `);
   });
-  it.skip('add', async () => {
+  it('add', async () => {
     expect(
-      await db
-        .collection<Test>('test')
-        .add({ a: 0, b: 0, c: -1, json: { c: [] } })
+      await db.collection<Test>('test').add({
+        _id,
+        a: 0,
+        b: 0,
+        c: -1,
+        json: { c: [], b: 1 },
+      })
     ).toMatchInlineSnapshot(`
-        {
-          "queryStatus": true,
-          "result": OkPacket {
-            "affectedRows": 1,
-            "changedRows": 0,
-            "fieldCount": 0,
-            "insertId": 0,
-            "message": "",
-            "protocol41": true,
-            "serverStatus": 2,
-            "warningCount": 0,
-          },
-          "status": true,
-        }
-      `);
+      {
+        "result": OkPacket {
+          "affectedRows": 1,
+          "changedRows": 0,
+          "fieldCount": 0,
+          "insertId": 0,
+          "message": "",
+          "protocol41": true,
+          "serverStatus": 2,
+          "warningCount": 0,
+        },
+        "status": true,
+      }
+    `);
   });
-  it.skip('update', async () => {
+  it('update', async () => {
     expect(
       await db
         .collection<Test>('test')
         .where({
           json: _.eq({ b: 1 }),
         })
-        .limit(10)
         .orderBy({
           a: 'asc',
         })
@@ -87,69 +91,62 @@ describe('SQLGenerator', () => {
         })
     ).toMatchInlineSnapshot(`
       {
-        "queryStatus": true,
         "result": OkPacket {
-          "affectedRows": 1,
+          "affectedRows": 0,
           "changedRows": 0,
           "fieldCount": 0,
           "insertId": 0,
-          "message": "(Rows matched: 1  Changed: 0  Warnings: 0",
+          "message": "(Rows matched: 0  Changed: 0  Warnings: 0",
           "protocol41": true,
           "serverStatus": 34,
           "warningCount": 0,
         },
-        "status": true,
+        "status": false,
       }
     `);
   });
-  it.skip('set', async () => {
+  it('set', async () => {
     expect(
       await db
         .collection<Test>('test')
         .where({
           a: _.eq(1),
         })
-        .limit(1)
         .orderBy({
           a: 'asc',
         })
         .set({
+          _id,
           a: 1,
         })
     ).toMatchInlineSnapshot(`
       {
-        "queryStatus": true,
         "result": OkPacket {
-          "affectedRows": 1,
-          "changedRows": 1,
+          "affectedRows": 0,
+          "changedRows": 0,
           "fieldCount": 0,
           "insertId": 0,
-          "message": "(Rows matched: 1  Changed: 1  Warnings: 0",
+          "message": "(Rows matched: 0  Changed: 0  Warnings: 0",
           "protocol41": true,
           "serverStatus": 34,
           "warningCount": 0,
         },
-        "status": true,
+        "status": false,
       }
     `);
   });
-  it.skip('remove', async () => {
+  it('remove', async () => {
     expect(
       await db
         .collection<Test>('test')
         .where({
           a: _.eq(10),
         })
-        .limit(1)
-        .orderBy({
-          a: 'asc',
-        })
         .remove()
     ).toMatchInlineSnapshot(`
       {
-        "queryStatus": true,
         "result": OkPacket {
-          "affectedRows": 1,
+          "affectedRows": 0,
           "changedRows": 0,
           "fieldCount": 0,
           "insertId": 0,
@@ -158,11 +155,11 @@ describe('SQLGenerator', () => {
           "serverStatus": 34,
           "warningCount": 0,
         },
-        "status": true,
+        "status": false,
       }
     `);
   });
-  it.skip('count', async () => {
+  it('count', async () => {
     expect(
       await db
         .collection<Test>('test')
@@ -172,20 +169,17 @@ describe('SQLGenerator', () => {
         .field({
           b: false,
         })
-        .limit(1)
-        .skip(0)
         .count()
     ).toMatchInlineSnapshot(`
       {
-        "queryStatus": true,
         "result": RowDataPacket {
-          "total": 2,
+          "total": 0,
         },
         "status": true,
       }
     `);
   });
-  it.skip('random', async () => {
+  it('random', async () => {
     expect(
       await db
         .collection<Test>('test')
@@ -194,24 +188,11 @@ describe('SQLGenerator', () => {
         })
         .random()
         .limit(1)
-        .skip(0)
         .get()
     ).toMatchInlineSnapshot(`
       {
-        "queryStatus": true,
-        "result": [
-          RowDataPacket {
-            "_id": "n7MN6ihH8C123R18dDaBnF4tetH1g06s",
-            "_timeStamp": "1664091764785",
-            "a": 0,
-            "b": 0,
-            "c": -1,
-            "d": null,
-            "json": "{\\"c\\": [1]}",
-            "test": "[{\\"test\\": 1}]",
-          },
-        ],
-        "status": true,
+        "result": [],
+        "status": false,
       }
     `);
   });

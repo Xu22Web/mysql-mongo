@@ -1,7 +1,7 @@
 import { EnumToUnion } from '../../../utils/utilsTypes';
 import {
   AggregateCommandLike,
-  AggregateKey,
+  AggregateKey
 } from '../../aggregateCommand/interface';
 import { CommandLike } from '../../command/interface';
 import { DeleteClipName } from './delete/interface';
@@ -55,6 +55,7 @@ export enum SQLTypes {
  * @description sql 类型
  */
 export type SQLType = SQLTypes | EnumToUnion<typeof SQLTypes>;
+
 /**
  * @description 片段类型
  */
@@ -63,6 +64,7 @@ export type ClipName =
   | InsertClipName
   | DeleteClipName
   | UpdateClipName;
+
 /**
  * @description 属性值
  */
@@ -92,20 +94,24 @@ export type SQLNewFields = {
     | null
     | undefined;
 };
+
 /**
  * @description 字段
  */
 export type SQLFields = string[];
+
 /**
  * @description 集合别名
  */
 export type SQLAlias = {
   [key: string]: AggregateKey;
 };
+
 /**
  * @description 集合名
  */
 export type SQLName = string;
+
 /**
  * @description 筛选
  */
@@ -119,13 +125,16 @@ export type SQLWhere = {
     | SQLRegex
     | SQLLike
     | CommandLike
+    | AggregateCommandLike
     | null
     | undefined;
 };
+
 /**
  * @description 分组
  */
 export type SQLGroupBy = (AggregateKey | string)[];
+
 /**
  * @description 排序
  */
@@ -136,24 +145,29 @@ export type SQLOrderBy = {
  * @description 分组条件
  */
 export type SQLHaving = SQLWhere;
+
 /**
  * @description 限制
  */
 export type SQLLimit = number;
+
 /**
  * @description 跳过
  */
 export type SQLSkip = number;
+
 /**
  * @description SQLJson
  */
 export type SQLJson = SQLJsonObject | SQLJsonArray;
+
 /**
  * @description SQLJsonObject
  */
 export type SQLJsonObject = {
   [key: string]: string | number | boolean | SQLJson | null;
 };
+
 /**
  * @description SQLJsonArray
  */
@@ -165,12 +179,14 @@ export type SQLJsonArray = (string | number | boolean | SQLJson | null)[];
 export type SQLRecord = {
   [key: string]: string | number | boolean | SQLJson | null | undefined;
 };
+
 /**
  * @description 过滤
  */
 export type SQLFilter = {
   [key: string]: boolean | undefined;
 };
+
 /**
  * @description 筛选正则
  */
@@ -178,6 +194,7 @@ export type SQLRegex = {
   $regex: string;
   $options: string;
 };
+
 /**
  * @description 筛选相似
  */
@@ -185,6 +202,7 @@ export type SQLLike = {
   $like: string;
   $options: string;
 };
+
 /**
  * @description 属性值
  */

@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { defineConfig } from '../';
 import { database } from '../src/lib/database';
 import {
   MySQLDeleteGenerator,
@@ -7,6 +6,7 @@ import {
   MySQLSelectGenerator,
   MySQLUpdateGenerator,
 } from '../src/lib/sql/sqlGenerator';
+import { defineConfig } from '../src/utils/defineConfig';
 
 const db = database(
   defineConfig({
@@ -31,7 +31,7 @@ type Test = {
 const $ = db.command.aggregate<Test>();
 const _ = db.command;
 
-describe('SQLGenerator', () => {
+describe('sql', () => {
   it('select', async () => {
     expect(
       new MySQLSelectGenerator()
@@ -41,7 +41,7 @@ describe('SQLGenerator', () => {
         .set('newfields', { tesat: $.eq('$test', 0) })
         .generate()
     ).toMatchInlineSnapshot(
-      '"select `json`, (`test` = 0) as `tesat` from `test`  where  and `a` = 0 and  and `a` is null"'
+      '"select `json`, (`test` = 0) as `tesat` from `test`  where `a` = 0 and `a` is null"'
     );
   });
   it('insert', async () => {
