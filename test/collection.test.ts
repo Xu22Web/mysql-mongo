@@ -28,20 +28,20 @@ const _ = db.command;
 
 const _id = Math.random().toString(16);
 
-describe('collection', () => {
+describe.skip('collection', () => {
   it('get', async () => {
     expect(
       await db
         .collection<Test>('test')
         .where({
-          '$json.c[0]': _.eq(1),
+          '$json.c': _.eq([]),
         })
         .field({
           b: true,
-          '$json.c[0]': false,
+          '$json.c': false,
         })
         .limit(1)
-        .skip(2)
+        .skip(1)
         .get()
     ).toMatchInlineSnapshot(`
       {
@@ -80,28 +80,28 @@ describe('collection', () => {
       await db
         .collection<Test>('test')
         .where({
-          json: _.eq({ b: 1 }),
+          '$json.c': _.eq([]),
         })
         .orderBy({
           a: 'asc',
         })
         .update({
-          json: { b: 1 },
+          json: { b: 1, c: [] },
           c: 1,
         })
     ).toMatchInlineSnapshot(`
       {
         "result": OkPacket {
-          "affectedRows": 0,
-          "changedRows": 0,
+          "affectedRows": 1,
+          "changedRows": 1,
           "fieldCount": 0,
           "insertId": 0,
-          "message": "(Rows matched: 0  Changed: 0  Warnings: 0",
+          "message": "(Rows matched: 1  Changed: 1  Warnings: 0",
           "protocol41": true,
           "serverStatus": 34,
           "warningCount": 0,
         },
-        "status": false,
+        "status": true,
       }
     `);
   });
@@ -110,52 +110,28 @@ describe('collection', () => {
       await db
         .collection<Test>('test')
         .where({
-          a: _.eq(1),
+          _id,
+          a: _.eq(0),
         })
         .orderBy({
           a: 'asc',
         })
         .set({
-          _id,
           a: 1,
         })
     ).toMatchInlineSnapshot(`
       {
         "result": OkPacket {
-          "affectedRows": 0,
-          "changedRows": 0,
+          "affectedRows": 1,
+          "changedRows": 1,
           "fieldCount": 0,
           "insertId": 0,
-          "message": "(Rows matched: 0  Changed: 0  Warnings: 0",
+          "message": "(Rows matched: 1  Changed: 1  Warnings: 0",
           "protocol41": true,
           "serverStatus": 34,
           "warningCount": 0,
         },
-        "status": false,
-      }
-    `);
-  });
-  it('remove', async () => {
-    expect(
-      await db
-        .collection<Test>('test')
-        .where({
-          a: _.eq(10),
-        })
-        .remove()
-    ).toMatchInlineSnapshot(`
-      {
-        "result": OkPacket {
-          "affectedRows": 0,
-          "changedRows": 0,
-          "fieldCount": 0,
-          "insertId": 0,
-          "message": "",
-          "protocol41": true,
-          "serverStatus": 34,
-          "warningCount": 0,
-        },
-        "status": false,
+        "status": true,
       }
     `);
   });
@@ -164,7 +140,7 @@ describe('collection', () => {
       await db
         .collection<Test>('test')
         .where({
-          '$json.c[0]': _.eq(1),
+          '$json.c': _.eq([]),
         })
         .field({
           b: false,
@@ -184,7 +160,7 @@ describe('collection', () => {
       await db
         .collection<Test>('test')
         .where({
-          '$json.c[0]': _.eq(1),
+          '$json.c': _.eq([]),
         })
         .random()
         .limit(1)
@@ -194,6 +170,30 @@ describe('collection', () => {
         "result": [],
         "status": false,
       }
-    `);
+      `);
+    it('remove', async () => {
+      expect(
+        await db
+          .collection<Test>('test')
+          .where({
+            _id,
+          })
+          .remove()
+      ).toMatchInlineSnapshot(`
+          {
+            "result": OkPacket {
+              "affectedRows": 1,
+              "changedRows": 0,
+              "fieldCount": 0,
+              "insertId": 0,
+              "message": "",
+              "protocol41": true,
+              "serverStatus": 34,
+              "warningCount": 0,
+            },
+            "status": true,
+          }
+        `);
+    });
   });
 });

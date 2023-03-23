@@ -16,9 +16,4 @@ export type SQLAggregateCommandClip<T = Omit<AggregateCommand, '$mode' | '$value
      * @param value
      */
     aggrValueClip(value: AggregateMixParamType): string | SQLJson | null;
-    /**
-     * @description 聚合值片段
-     * @param value
-     */
-    aggrJsonValueClip(value: AggregateMixParamType): string | SQLJson | null;
 };

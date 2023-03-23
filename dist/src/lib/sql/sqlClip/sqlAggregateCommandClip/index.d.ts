@@ -6,7 +6,6 @@ import { SQLAggregateCommandClip } from './interface';
 declare class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
     aggrControllerClip(aggregate: AggregateCommandLike): string;
     aggrValueClip(value: AggregateMixParamType): string;
-    aggrJsonValueClip(value: AggregateMixParamType): string;
     and(aggregate: AggregateProps): string;
     or(aggregate: AggregateProps): string;
     not(aggregate: AggregateProps): string;

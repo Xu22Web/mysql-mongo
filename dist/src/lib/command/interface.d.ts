@@ -160,15 +160,15 @@ export interface Command extends CommandLike {
      * @param value
      * @param rest
      */
-    and(value: Command[]): Command;
-    and(value: Command, ...rest: Command[]): Command;
+    and(value: CommandMixParamType[]): Command;
+    and(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
     /**
      * @description 逻辑操作符 或
      * @param value
      * @param rest
      */
-    or(value: Command[]): Command;
-    or(value: Command, ...rest: Command[]): Command;
+    or(value: CommandMixParamType[]): Command;
+    or(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
     /**
      * @description 逻辑操作符 非
      * @param value
@@ -179,15 +179,15 @@ export interface Command extends CommandLike {
      * @param value
      * @param rest
      */
-    nor(value: Command[]): Command;
-    nor(value: Command, ...rest: Command[]): Command;
+    nor(value: CommandMixParamType[]): Command;
+    nor(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
     /**
      * @description 逻辑操作符 不都
      * @param value
      * @param rest
      */
-    nand(value: Command[]): Command;
-    nand(value: Command, ...rest: Command[]): Command;
+    nand(value: CommandMixParamType[]): Command;
+    nand(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
     /**
      * @description 逻辑操作符 等于
      * @param value

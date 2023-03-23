@@ -29,15 +29,7 @@ class MySQLInsertGenerator implements InsertGenerator {
     if (clipName === 'record') {
       if (typeOf.isNotEmptyObj(value)) {
         // 初始化
-        this.$record = {};
-        for (const key in value) {
-          // 值为数组和对象类型
-          if (typeOf.isObject(value[key]) || typeOf.isArray(value[key])) {
-            this.$record[key] = JSON.stringify((<SQLRecord>value)[key]);
-          } else {
-            this.$record[key] = (<SQLRecord>value)[key];
-          }
-        }
+        this.$record = <SQLRecord>value;
         return this;
       }
       // 报错：SQLGENERATOR_PROPERTY_ERROR

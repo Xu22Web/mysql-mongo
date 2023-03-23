@@ -15905,11 +15905,25 @@ const isKey = (value) => {
     return typeOf.strMatch(value, /(?<=\$).*/);
 };
 /**
- * @description 判断键
+ * @description 判断数组键
  * @param value
  */
 const isArrayKey = (value) => {
-    return typeOf.strMatch(value, /.*\[\d+\]/);
+    return typeOf.strMatch(value, /(.*)\[\d+\](.*)/);
+};
+/**
+ * @description 判断对象键
+ * @param value
+ */
+const isObjectKey = (value) => {
+    return typeOf.strMatch(value, /(.*)\.(.*)/);
+};
+/**
+ * @description 判断json键
+ * @param value
+ */
+const isJsonKey = (value) => {
+    return isObjectKey(value) || isArrayKey(value);
 };
 /**
  * @description 获取所有键
@@ -15928,7 +15942,7 @@ const getArrayKey = (value) => {
  * @param value
  */
 const getAllKey = (value) => {
-    const key = value.match(/(?<=\$).*/)[0];
+    const key = getKey(value);
     const allKeys = key.split('.').map((k) => {
         if (isArrayKey(k)) {
             return getArrayKey(k);
@@ -15936,6 +15950,43 @@ const getAllKey = (value) => {
         return k;
     });
     return allKeys;
+};
+/**
+ * @description 获取键路径
+ * @param key
+ * @returns
+ */
+const getKey = (rawKey) => {
+    const [key] = rawKey.match(/(?<=\$).*/);
+    return key;
+};
+/**
+ * @description 获取键路径
+ * @param key
+ * @returns
+ */
+const getJsonKeyPath = (key) => {
+    // 获取子键
+    const keys = getAllKey(key);
+    if (keys.length !== 1 || typeOf.isNotEmptyArr(keys[0])) {
+        // 获取字段
+        const [field, ...subFields] = keys;
+        const subKeys = subFields.map((subField) => {
+            if (typeOf.isNotEmptyArr(subField)) {
+                const [arrayField, ...indexs] = subField;
+                const indexField = indexs.map((index) => `[${index}]`).join('');
+                return `${arrayField}${indexField}`;
+            }
+            return subField;
+        });
+        if (typeOf.isNotEmptyArr(field)) {
+            const [arrayField, ...indexs] = field;
+            const indexField = indexs.map((index) => `[${index}]`).join('');
+            return [arrayField, `$${[indexField, ...subKeys].join('.')}`];
+        }
+        return [field, `$.${subKeys.join('.')}`];
+    }
+    return [keys[0], '$'];
 };
 /**
  * @description JSON字符串结果转换为对象
@@ -15952,19 +16003,6 @@ const parseJson = (fields, results) => {
             }
         });
     });
-};
-/**
- * @description 对象、数组转化JSON字符串
- * @param fields
- * @param results
- */
-const stringfyJson = (data) => {
-    for (const key in data) {
-        if (data[key] instanceof Object) {
-            data[key] = JSON.stringify(data[key]);
-        }
-    }
-    return data;
 };
 /**
  * @description tinyint(1)结果转布尔
@@ -16506,49 +16544,64 @@ class MySQLAggregateCommand {
         return new MySQLAggregateCommand(values, AggregateCompareFilterType.NIN);
     }
     abs(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.ABS);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.ABS);
     }
     sqrt(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.SQRT);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.SQRT);
     }
     ln(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.LN);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.LN);
     }
     log10(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.LOG10);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.LOG10);
     }
     sin(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.SIN);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.SIN);
     }
     asin(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.ASIN);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.ASIN);
     }
     cos(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.COS);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.COS);
     }
     acos(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.ACOS);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.ACOS);
     }
     tan(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.TAN);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.TAN);
     }
     atan(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.ATAN);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.ATAN);
     }
     cot(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.COT);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.COT);
     }
     floor(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.FLOOR);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.FLOOR);
     }
     round(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.ROUND);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.ROUND);
     }
     ceil(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.CEIL);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.CEIL);
     }
     exp(...values) {
-        return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.EXP);
+        const results = valueToArr(values[0], this);
+        return new MySQLAggregateCommand(results, AggregateCalculationFunctionType.EXP);
     }
     sign(...values) {
         return new MySQLAggregateCommand(values, AggregateCalculationFunctionType.SIGN);
@@ -16704,13 +16757,35 @@ class MySQLAggregateCommand {
 const $ = new MySQLAggregateCommand();
 
 /**
+ * @description MySQL 正则匹配
+ */
+class MySQLRegExpLike {
+    $regex;
+    $options;
+    constructor($regex, $options) {
+        this.$regex = $regex;
+        this.$options = $options;
+    }
+    create(regexp) {
+        // 正则表达式
+        if (typeOf.isRegx(regexp)) {
+            const { flags, source } = regexp;
+            return new MySQLRegExpLike(source, flags);
+        }
+        const { $regex, $options } = regexp;
+        return new MySQLRegExpLike($regex, $options);
+    }
+}
+
+/**
  * @description aggregate clip 片段
  */
 class MySQLAggregateCommandClip {
     aggrControllerClip(aggregate) {
         // 类型 模式
         const { $type } = aggregate;
-        if (!typeOf.objStructMatch(aggregate, ['$value', '$type'])) {
+        if (!typeOf.objStructMatch(aggregate, ['$value', '$type']) ||
+            aggregate.$mode !== 'aggregate') {
             throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, `aggregate must be a 'AggregateCommandLike'`);
         }
         // 布尔操作符
@@ -16900,37 +16975,15 @@ class MySQLAggregateCommandClip {
         if ($type === AggregateJsonType.ARRAY_APPEND) {
             return this.json_array_append(aggregate);
         }
+        if ($type === AggregateJsonType.ARRAY_INSERT) {
+            return this.json_array_insert(aggregate);
+        }
         throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, `aggragte.type don't exist`);
     }
     aggrValueClip(value) {
         // AggregateCommand 类型
-        if (typeOf.objStructMatch(value, ['$value', '$type'])) {
-            return this.aggrControllerClip(value);
-        }
-        // 字符键表达式
-        if (isKey(value)) {
-            const key = sqlClip.keyClip(value);
-            return key;
-        }
-        // number、string、boolean 类型
-        if (typeOf.isNumber(value) ||
-            typeOf.isString(value) ||
-            typeOf.isBooloon(value)) {
-            return mysqlExports.escape(value);
-        }
-        // null 类型
-        if (typeOf.isNull(value)) {
-            return 'null';
-        }
-        // object、 array 类型
-        if (typeOf.isArray(value) || typeOf.isObject(value)) {
-            return `cast(${mysqlExports.escape(JSON.stringify(value))} as json)`;
-        }
-        return '';
-    }
-    aggrJsonValueClip(value) {
-        // AggregateCommand 类型
-        if (typeOf.objStructMatch(value, ['$value', '$type'])) {
+        if (typeOf.objStructMatch(value, ['$value', '$type']) &&
+            value.$mode === 'aggregate') {
             return this.aggrControllerClip(value);
         }
         // 字符键表达式
@@ -16965,7 +17018,7 @@ class MySQLAggregateCommandClip {
                 const value = obj[key];
                 return `${mysqlExports.escape(key)}, ${this.aggrValueClip(value)}`;
             })
-                .join(',')})`;
+                .join(', ')})`;
         }
         return '';
     }
@@ -17410,24 +17463,27 @@ class MySQLAggregateCommandClip {
     }
     json_array_append(aggregate) {
         const { $value: rawArgs } = aggregate;
-        const jsonArr = this.aggrJsonValueClip(rawArgs[0]);
-        const appendVal = this.aggrJsonValueClip(rawArgs[1]);
-        return `${AggregateJsonType.ARRAY_APPEND}(${jsonArr}, '$', ${appendVal})`;
+        const [key, path] = getJsonKeyPath(rawArgs[0]);
+        const appendVal = this.aggrValueClip(rawArgs[1]);
+        return `${AggregateJsonType.ARRAY_APPEND}(${mysqlExports.escapeId(key)}, ${mysqlExports.escape(path)}, ${appendVal})`;
     }
     json_array_insert(aggregate) {
-        return '';
+        const { $value: rawArgs } = aggregate;
+        const [key, path] = getJsonKeyPath(rawArgs[0]);
+        const insertVal = this.aggrValueClip(rawArgs[1]);
+        return `${AggregateJsonType.ARRAY_INSERT}(${mysqlExports.escapeId(key)}, ${mysqlExports.escape(path)}, ${insertVal})`;
     }
     json_object(aggregate) {
         const { $value: rawArgs } = aggregate;
-        return this.aggrJsonValueClip(rawArgs[0]);
+        return this.aggrValueClip(rawArgs[0]);
     }
     json_array(aggregate) {
         const { $value: rawArgs } = aggregate;
-        return this.aggrJsonValueClip(rawArgs[0]);
+        return this.aggrValueClip(rawArgs[0]);
     }
     json_type(aggregate) {
         const { $value: rawArgs } = aggregate;
-        return this.aggrJsonValueClip(rawArgs[0]);
+        return this.aggrValueClip(rawArgs[0]);
     }
     json_keys(aggregate) {
         return '';
@@ -17550,8 +17606,14 @@ var CommandCompareFilterType;
 class MySQLCommandClip {
     cmdValueClip(key, value) {
         // Command 类型
-        if (typeOf.objStructMatch(value, ['$value', '$type'])) {
+        if (typeOf.objStructMatch(value, ['$value', '$type']) &&
+            value.$mode === 'command') {
             return this.cmdControllerClip(key, value);
+        }
+        // AggregateCommand 类型
+        if (typeOf.objStructMatch(value, ['$value', '$type']) &&
+            value.$mode === 'aggregate') {
+            return sqlAggregateCommandClip.aggrControllerClip(value);
         }
         // 字符键表达式
         if (isKey(value)) {
@@ -17568,17 +17630,22 @@ class MySQLCommandClip {
         if (typeOf.isNull(value)) {
             return 'null';
         }
-        // object、array 类型
-        if (typeOf.isObject(value) || typeOf.isArray(value)) {
-            return `cast(${mysqlExports.escape(JSON.stringify(value))} as json)`;
+        //  array 类型
+        if (typeOf.isArray(value)) {
+            return sqlAggregateCommandClip.aggrControllerClip($.json_array(value));
+        }
+        // object 类型
+        if (typeOf.isObject(value)) {
+            return sqlAggregateCommandClip.aggrControllerClip($.json_object(value));
         }
         return '';
     }
     cmdControllerClip(key, command) {
         // 类型 值 模式
         const { $type } = command;
-        if (!typeOf.objStructMatch(command, ['$value', '$type'])) {
-            throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, `command must be a 'AggregateCommandLike'`);
+        if (!typeOf.objStructMatch(command, ['$value', '$type']) ||
+            command.$mode !== 'command') {
+            throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, `command must be a 'CommandLike'`);
         }
         // 逻辑操作符
         if ($type === CommandLogicSimpleType.AND) {
@@ -17757,7 +17824,8 @@ class MySQLClip {
                 .map((key) => ` ${mysqlExports.escapeId(key)} as ${mysqlExports.escapeId(name[key])} `)
                 .join(', ');
         }
-        return '';
+        // 报错：ARGUMENTS_TYPE_ERROR
+        throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, `name must to be SQLName | SQLAlias`);
     }
     fieldsClip(fields, newfields, group) {
         // 字段片段
@@ -17869,8 +17937,10 @@ class MySQLClip {
                 // 报错：ARGUMENTS_TYPE_ERROR
                 throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, 'In newfieldsClip, a argument type must be number, string, boolean, null, AggregateCommand, or AggregateKey');
             });
+            return newfieldsClip.join(', ');
         }
-        return newfieldsClip.join(', ');
+        // 报错：ARGUMENTS_TYPE_ERROR
+        throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, `newfields must to be SQLNewFields`);
     }
     fieldFilterClip(filter) {
         // 过滤行
@@ -17900,63 +17970,51 @@ class MySQLClip {
     }
     regexClip(key, value) {
         // 正则
-        let regex = null;
-        // 正则表达式
-        if (typeOf.isRegx(value)) {
-            const { flags, source } = value;
-            regex = { $regex: source, $options: flags };
+        let regex = new MySQLRegExpLike().create(value);
+        // 非法正则
+        if (!typeOf.objStructMatch(regex, ['$regex', '$options'])) {
+            // 报错：ARGUMENTS_TYPE_ERROR
+            throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, `expected key is string, value is SQLRegex or RegExp`);
         }
-        // SQLRegex 正则表达式
-        if (typeOf.objStructMatch(value, ['$regex', '$options'])) {
-            regex = value;
-        }
-        if (regex) {
-            // 字段
-            const fieldKey = this.keyClip(key);
-            if (typeOf.objStructMatch(regex, ['$regex', '$options'])) {
-                // SQLRegex
-                const { $options, $regex } = regex;
-                // 大小写
-                if ($options.includes('i')) {
-                    // 单行
-                    if (!$options.includes('m')) {
-                        return `${fieldKey} regexp "^${mysqlExports.escape($regex).replace(/^'(.*)'$/, '$1')}[^(\\n)]*$"`;
-                    }
-                    return `${fieldKey} regexp ${mysqlExports.escape($regex)}`;
+        // 字段
+        const fieldKey = this.keyClip(key);
+        // SQLRegex
+        const { $options, $regex } = regex;
+        if ($options) {
+            // 大小写
+            if ($options.includes('i')) {
+                // 单行
+                if (!$options.includes('m')) {
+                    return `${fieldKey} regexp "^${mysqlExports.escape($regex).replace(/^'(.*)'$/, '$1')}[^(\\n)]*$"`;
                 }
-                // 多行
-                if ($options.includes('m')) {
-                    return `binary ${fieldKey} regexp ${mysqlExports.escape($regex)}`;
-                }
-                return `binary ${fieldKey} regexp "^${mysqlExports.escape($regex).replace(/^'(.*)'$/, '$1')}[^(\n)]*$"`;
+                return `${fieldKey} regexp ${mysqlExports.escape($regex)}`;
+            }
+            // 多行
+            if ($options.includes('m')) {
+                return `binary ${fieldKey} regexp ${mysqlExports.escape($regex)}`;
             }
         }
-        return '';
+        return `binary ${fieldKey} regexp "^${mysqlExports.escape($regex).replace(/^'(.*)'$/, '$1')}[^(\n)]*$"`;
     }
-    keyClip(key) {
-        // 是否是键
+    keyClip(key, json) {
+        key = key.trim();
+        // 非法 key
+        if (!key) {
+            // 报错：ARGUMENTS_TYPE_ERROR
+            throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, `expected key is string`);
+        }
+        // key
         if (isKey(key)) {
-            // 获取子键
-            const keys = getAllKey(key);
-            if (keys.length !== 1 || typeOf.isNotEmptyArr(keys[0])) {
-                // 获取字段
-                const [field, ...subFields] = keys;
-                const subKeys = subFields.map((subField) => {
-                    if (typeOf.isNotEmptyArr(subField)) {
-                        const [arrayField, ...indexs] = subField;
-                        const indexField = indexs.map((index) => `[${index}]`).join('');
-                        return `${arrayField}${indexField}`;
-                    }
-                    return subField;
-                });
-                if (typeOf.isNotEmptyArr(field)) {
-                    const [arrayField, ...indexs] = field;
-                    const indexField = indexs.map((index) => `[${index}]`).join('');
-                    return `${mysqlExports.escapeId(arrayField)}->${mysqlExports.escape(`$${[indexField, ...subKeys].join('.')}`)}`;
-                }
-                return `${mysqlExports.escapeId(field)}->${mysqlExports.escape(`$.${subKeys.join('.')}`)}`;
+            // json
+            if (isJsonKey(key) || json) {
+                const [field, path] = getJsonKeyPath(key);
+                return `${mysqlExports.escapeId(field)}->${mysqlExports.escape(path)}`;
             }
-            return mysqlExports.escapeId(keys[0]);
+            return mysqlExports.escapeId(getKey(key));
+        }
+        // json
+        if (json) {
+            return `${mysqlExports.escapeId(key)}->'$'`;
         }
         return mysqlExports.escapeId(key);
     }
@@ -17990,9 +18048,15 @@ class MySQLClip {
                 }
                 // 字段
                 const fieldKey = this.keyClip(key);
-                // 对象、数组
-                if (typeOf.isObject(where[key]) || typeOf.isArray(where[key])) {
-                    return `${fieldKey} = cast(${mysqlExports.escape(JSON.stringify(where[key]))} as json)`;
+                // 对象
+                if (typeOf.isObject(where[key])) {
+                    const value = sqlAggregateCommandClip.aggrControllerClip($.json_object(where[key]));
+                    return `${fieldKey} = ${value}`;
+                }
+                // 数组
+                if (typeOf.isArray(where[key])) {
+                    const value = sqlAggregateCommandClip.aggrControllerClip($.json_array(where[key]));
+                    return `${fieldKey} = ${value}`;
                 }
                 // null
                 if (typeOf.isNull(where[key])) {
@@ -18137,8 +18201,15 @@ class MySQLClip {
                 // 字段
                 const fieldKey = this.keyClip(key);
                 if (typeOf.isNotUndefined(record[key])) {
-                    if (typeOf.isObject(record[key]) || typeOf.isArray(record[key])) {
-                        return `${fieldKey} = ${mysqlExports.escape(JSON.stringify(record[key]))}`;
+                    // 对象
+                    if (typeOf.isObject(record[key])) {
+                        const value = sqlAggregateCommandClip.aggrControllerClip($.json_object(record[key]));
+                        return `${fieldKey} = ${value}`;
+                    }
+                    // 数组
+                    if (typeOf.isArray(record[key])) {
+                        const value = sqlAggregateCommandClip.aggrControllerClip($.json_array(record[key]));
+                        return `${fieldKey} = ${value}`;
                     }
                     return `${fieldKey} = ${mysqlExports.escape(record[key])}`;
                 }
@@ -18279,16 +18350,7 @@ class MySQLInsertGenerator {
         if (clipName === 'record') {
             if (typeOf.isNotEmptyObj(value)) {
                 // 初始化
-                this.$record = {};
-                for (const key in value) {
-                    // 值为数组和对象类型
-                    if (typeOf.isObject(value[key]) || typeOf.isArray(value[key])) {
-                        this.$record[key] = JSON.stringify(value[key]);
-                    }
-                    else {
-                        this.$record[key] = value[key];
-                    }
-                }
+                this.$record = value;
                 return this;
             }
             // 报错：SQLGENERATOR_PROPERTY_ERROR
@@ -19181,11 +19243,9 @@ class MySQLCollection {
             throw errHandler.createError(MySQLErrorType.COLLECTION_ADD_ERROR, 'data is an invalid value');
         }
         try {
-            // json处理
-            const newData = stringfyJson(data);
             const insertGen = new MySQLInsertGenerator({
                 $name,
-                $record: newData,
+                $record: data,
             });
             // sql
             const sql = insertGen.generate();
@@ -19237,14 +19297,12 @@ class MySQLCollection {
             throw errHandler.createError(MySQLErrorType.COLLECTION_UPDATE_ERROR, 'data is an invalid value');
         }
         try {
-            // json处理
-            const newData = stringfyJson(data);
             const updateGen = new MySQLUpdateGenerator({
                 $name,
                 $where,
                 $limit,
                 $orderby,
-                $record: newData,
+                $record: data,
             });
             // sql
             const sql = updateGen.generate();
@@ -19276,7 +19334,11 @@ class MySQLCollection {
             const newData = {};
             fields.forEach((field) => {
                 // 字段名
-                const { COLUMN_NAME: fieldName, COLUMN_DEFAULT: defaultValue, COLUMN_TYPE: fieldType, } = field;
+                const { COLUMN_NAME: fieldName, COLUMN_DEFAULT: defaultValue, COLUMN_KEY: key, } = field;
+                // 跳过主键
+                if (key === 'PRI') {
+                    return;
+                }
                 newData[fieldName] = typeOf.isUndefined(data[fieldName])
                     ? defaultValue
                     : data[fieldName];
@@ -19335,8 +19397,7 @@ class MySQLCommand {
         return new MySQLCommand(results, CommandLogicSimpleType.OR);
     }
     not(value) {
-        const results = valueToArr(value);
-        return new MySQLCommand(results, CommandLogicNegativeType.NOT);
+        return new MySQLCommand([value], CommandLogicNegativeType.NOT);
     }
     nor(value, ...rest) {
         const results = valuesToArr(value, rest, this);
@@ -19507,27 +19568,6 @@ class MySQLConnectionController {
                 singleConn.end();
             }
         }
-    }
-}
-
-/**
- * @description MySQL 正则匹配
- */
-class MySQLRegExpLike {
-    $regex;
-    $options;
-    constructor($regex, $options) {
-        this.$regex = $regex;
-        this.$options = $options;
-    }
-    create(regexp) {
-        // 正则表达式
-        if (typeOf.isRegx(regexp)) {
-            const { flags, source } = regexp;
-            return new MySQLRegExpLike(source, flags);
-        }
-        const { $regex, $options } = regexp;
-        return new MySQLRegExpLike($regex, $options);
     }
 }
 

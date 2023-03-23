@@ -1,7 +1,7 @@
-import { escape } from 'mysql';
+import { escape, escapeId } from 'mysql';
 import { sqlClip } from '..';
 import { errHandler, MySQLErrorType } from '../../../../model/errorHandler';
-import { isKey } from '../../../../utils/handler';
+import { getJsonKeyPath, isKey } from '../../../../utils/handler';
 import typeOf from '../../../../utils/typeOf';
 import {
   AggregateAccumulationType,
@@ -14,11 +14,14 @@ import {
   AggregateCompareSimpleType,
   AggregateConditionType,
   AggregateJsonType,
+  AggregateKey,
   AggregateMixParamType,
   AggregateProps,
   AggregateStringType,
 } from '../../../aggregateCommand/interface';
+import { CommandLike } from '../../../command/interface';
 import { SQLJsonObject } from '../../sqlGenerator/interface';
+import { sqlCommandClip } from '../sqlCommandClip';
 import { SQLAggregateCommandClip } from './interface';
 
 /**
@@ -29,7 +32,8 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
     // 类型 模式
     const { $type } = aggregate;
     if (
-      !typeOf.objStructMatch<AggregateProps>(aggregate, ['$value', '$type'])
+      !typeOf.objStructMatch<AggregateProps>(aggregate, ['$value', '$type']) ||
+      aggregate.$mode !== 'aggregate'
     ) {
       throw errHandler.createError(
         MySQLErrorType.ARGUMENTS_TYPE_ERROR,
@@ -224,6 +228,9 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
     if ($type === AggregateJsonType.ARRAY_APPEND) {
       return this.json_array_append(aggregate);
     }
+    if ($type === AggregateJsonType.ARRAY_INSERT) {
+      return this.json_array_insert(aggregate);
+    }
     throw errHandler.createError(
       MySQLErrorType.ARGUMENTS_TYPE_ERROR,
       `aggragte.type don't exist`
@@ -231,35 +238,10 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
   }
   aggrValueClip(value: AggregateMixParamType): string {
     // AggregateCommand 类型
-    if (typeOf.objStructMatch<AggregateProps>(value, ['$value', '$type'])) {
-      return this.aggrControllerClip(value);
-    }
-    // 字符键表达式
-    if (isKey(value)) {
-      const key = sqlClip.keyClip(value);
-      return key;
-    }
-    // number、string、boolean 类型
     if (
-      typeOf.isNumber(value) ||
-      typeOf.isString(value) ||
-      typeOf.isBooloon(value)
+      typeOf.objStructMatch<AggregateCommandLike>(value, ['$value', '$type']) &&
+      value.$mode === 'aggregate'
     ) {
-      return escape(value);
-    }
-    // null 类型
-    if (typeOf.isNull(value)) {
-      return 'null';
-    }
-    // object、 array 类型
-    if (typeOf.isArray(value) || typeOf.isObject(value)) {
-      return `cast(${escape(JSON.stringify(value))} as json)`;
-    }
-    return '';
-  }
-  aggrJsonValueClip(value: AggregateMixParamType): string {
-    // AggregateCommand 类型
-    if (typeOf.objStructMatch<AggregateProps>(value, ['$value', '$type'])) {
       return this.aggrControllerClip(value);
     }
     // 字符键表达式
@@ -296,7 +278,7 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
           const value = obj[key];
           return `${escape(key)}, ${this.aggrValueClip(value)}`;
         })
-        .join(',')})`;
+        .join(', ')})`;
     }
     return '';
   }
@@ -745,24 +727,31 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
   }
   json_array_append(aggregate: AggregateProps): string {
     const { $value: rawArgs } = aggregate;
-    const jsonArr = this.aggrJsonValueClip(rawArgs[0]);
-    const appendVal = this.aggrJsonValueClip(rawArgs[1]);
-    return `${AggregateJsonType.ARRAY_APPEND}(${jsonArr}, '$', ${appendVal})`;
+    const [key, path] = getJsonKeyPath(<AggregateKey>rawArgs[0]);
+    const appendVal = this.aggrValueClip(rawArgs[1]);
+    return `${AggregateJsonType.ARRAY_APPEND}(${escapeId(key)}, ${escape(
+      path
+    )}, ${appendVal})`;
   }
   json_array_insert(aggregate: AggregateProps): string {
-    return '';
+    const { $value: rawArgs } = aggregate;
+    const [key, path] = getJsonKeyPath(<AggregateKey>rawArgs[0]);
+    const insertVal = this.aggrValueClip(rawArgs[1]);
+    return `${AggregateJsonType.ARRAY_INSERT}(${escapeId(key)}, ${escape(
+      path
+    )}, ${insertVal})`;
   }
   json_object(aggregate: AggregateProps): string {
     const { $value: rawArgs } = aggregate;
-    return this.aggrJsonValueClip(rawArgs[0]);
+    return this.aggrValueClip(rawArgs[0]);
   }
   json_array(aggregate: AggregateProps): string {
     const { $value: rawArgs } = aggregate;
-    return this.aggrJsonValueClip(rawArgs[0]);
+    return this.aggrValueClip(rawArgs[0]);
   }
   json_type(aggregate: AggregateProps): string {
     const { $value: rawArgs } = aggregate;
-    return this.aggrJsonValueClip(rawArgs[0]);
+    return this.aggrValueClip(rawArgs[0]);
   }
   json_keys(aggregate: AggregateProps): string {
     return '';

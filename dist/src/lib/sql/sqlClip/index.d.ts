@@ -10,7 +10,7 @@ declare class MySQLClip implements SqlClip {
     fieldFilterClip(filter?: SQLFilter): string;
     likeClip(key: string, value: SQLLike): string;
     regexClip(key: string, value: SQLRegex | RegExp): string;
-    keyClip(key: string): string;
+    keyClip(key: string, json?: boolean): string;
     whereClip(where?: SQLWhere): string;
     groupByClip(groupBy?: SQLGroupBy): string;
     havingClip(where?: SQLHaving): string;

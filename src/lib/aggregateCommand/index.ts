@@ -1,3 +1,4 @@
+import { valueToArr } from '../../utils/handler';
 import {
   AggregateAccumulationType,
   AggregateArrayParamType,
@@ -135,120 +136,135 @@ class MySQLAggregateCommand<T extends object = object>
   abs<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.ABS
     );
   }
   sqrt<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.SQRT
     );
   }
   ln<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.LN
     );
   }
   log10<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.LOG10
     );
   }
   sin<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.SIN
     );
   }
   asin<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.ASIN
     );
   }
   cos<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.COS
     );
   }
   acos<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.ACOS
     );
   }
   tan<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.TAN
     );
   }
   atan<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.ATAN
     );
   }
   cot<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.COT
     );
   }
   floor<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.FLOOR
     );
   }
   round<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.ROUND
     );
   }
   ceil<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.CEIL
     );
   }
   exp<P extends [] | [AggregateNumberParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
+    const results = valueToArr<AggregateNumberParamType<T>>(values[0], this);
     return new MySQLAggregateCommand(
-      values,
+      results,
       AggregateCalculationFunctionType.EXP
     );
   }
@@ -528,12 +544,12 @@ class MySQLAggregateCommand<T extends object = object>
     return new MySQLAggregateCommand(values, AggregateJsonType.REMOVE);
   }
   json_array_append<
-    P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]
+    P extends [AggregateArrayParamType<T>, AggregateMixParamType<T>]
   >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.ARRAY_APPEND);
   }
   json_array_insert<
-    P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]
+    P extends [AggregateArrayParamType<T>, AggregateMixParamType<T>]
   >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.ARRAY_INSERT);
   }

@@ -1,8 +1,5 @@
 import { FieldInfo, Types } from 'mysql';
-import {
-  AggregateArrayKey,
-  AggregateKey,
-} from '../lib/aggregateCommand/interface';
+import { AggregateKey } from '../lib/aggregateCommand/interface';
 import typeOf from './typeOf';
 
 /**
@@ -120,27 +117,34 @@ export const isKey = (value: any): value is AggregateKey => {
 };
 
 /**
- * @description 判断键
+ * @description 判断数组键
  * @param value
  */
-export const isArrayKey = (value: any): value is AggregateArrayKey => {
-  return typeOf.strMatch(value, /.*\[\d+\]/);
+export const isArrayKey = (value: any): value is string => {
+  return typeOf.strMatch(value, /(.*)\[\d+\](.*)/);
+};
+
+/**
+ * @description 判断对象键
+ * @param value
+ */
+export const isObjectKey = (value: any): value is string => {
+  return typeOf.strMatch(value, /(.*)\.(.*)/);
+};
+
+/**
+ * @description 判断json键
+ * @param value
+ */
+export const isJsonKey = (value: any): value is string => {
+  return isObjectKey(value) || isArrayKey(value);
 };
 
 /**
  * @description 获取所有键
  * @param value
  */
-export const getKey = (value: AggregateKey) => {
-  const key = value.match(/(?<=\$).*/)![0];
-  return key.split('.');
-};
-
-/**
- * @description 获取所有键
- * @param value
- */
-export const getArrayKey = (value: AggregateArrayKey): string[] => {
+export const getArrayKey = (value: string): string[] => {
   const key = value.match(/(.*)\[(\d+)\]/);
   if (isArrayKey(key![1])) {
     const keys = getArrayKey(key![1]);
@@ -154,7 +158,7 @@ export const getArrayKey = (value: AggregateArrayKey): string[] => {
  * @param value
  */
 export const getAllKey = (value: AggregateKey) => {
-  const key = value.match(/(?<=\$).*/)![0];
+  const key = getKey(value);
   const allKeys = key.split('.').map((k) => {
     if (isArrayKey(k)) {
       return getArrayKey(k);
@@ -162,6 +166,45 @@ export const getAllKey = (value: AggregateKey) => {
     return k;
   });
   return allKeys;
+};
+
+/**
+ * @description 获取键路径
+ * @param key
+ * @returns
+ */
+export const getKey = (rawKey: AggregateKey): string => {
+  const [key] = rawKey.match(/(?<=\$).*/)!;
+  return key;
+};
+
+/**
+ * @description 获取键路径
+ * @param key
+ * @returns
+ */
+export const getJsonKeyPath = (key: AggregateKey): string[] => {
+  // 获取子键
+  const keys = getAllKey(key);
+  if (keys.length !== 1 || typeOf.isNotEmptyArr(keys[0])) {
+    // 获取字段
+    const [field, ...subFields] = keys;
+    const subKeys = subFields.map((subField) => {
+      if (typeOf.isNotEmptyArr(subField)) {
+        const [arrayField, ...indexs] = subField;
+        const indexField = indexs.map((index) => `[${index}]`).join('');
+        return `${arrayField}${indexField}`;
+      }
+      return subField;
+    });
+    if (typeOf.isNotEmptyArr(field)) {
+      const [arrayField, ...indexs] = field;
+      const indexField = indexs.map((index) => `[${index}]`).join('');
+      return [arrayField, `$${[indexField, ...subKeys].join('.')}`];
+    }
+    return [field, `$.${subKeys.join('.')}`];
+  }
+  return [keys[0], '$'];
 };
 
 /**
@@ -181,21 +224,6 @@ export const parseJson = (fields: FieldInfo[], results: any[]) => {
     });
 };
 
-/**
- * @description 对象、数组转化JSON字符串
- * @param fields
- * @param results
- */
-export const stringfyJson = (data: object) => {
-  for (const key in data) {
-    if (<any>data[<keyof object>key] instanceof Object) {
-      (<string>data[<keyof object>key]) = JSON.stringify(
-        data[<keyof object>key]
-      );
-    }
-  }
-  return data;
-};
 
 /**
  * @description tinyint(1)结果转布尔

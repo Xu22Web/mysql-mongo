@@ -3,6 +3,8 @@ import { sqlClip } from '..';
 import { errHandler, MySQLErrorType } from '../../../../model/errorHandler';
 import { isKey } from '../../../../utils/handler';
 import typeOf from '../../../../utils/typeOf';
+import { $ } from '../../../aggregateCommand';
+import { AggregateCommandLike } from '../../../aggregateCommand/interface';
 import {
   CommandCompareFilterType,
   CommandCompareSimpleType,
@@ -12,6 +14,8 @@ import {
   CommandMixParamType,
   CommandProps,
 } from '../../../command/interface';
+import { SQLJsonArray, SQLJsonObject } from '../../sqlGenerator/interface';
+import { sqlAggregateCommandClip } from '../sqlAggregateCommandClip';
 import { SQLCommandClip } from './interface';
 
 /**
@@ -20,8 +24,18 @@ import { SQLCommandClip } from './interface';
 class MySQLCommandClip implements SQLCommandClip {
   cmdValueClip(key: string, value: CommandMixParamType): string | null {
     // Command 类型
-    if (typeOf.objStructMatch(value, ['$value', '$type'])) {
-      return this.cmdControllerClip(key, <CommandProps>value);
+    if (
+      typeOf.objStructMatch<CommandLike>(value, ['$value', '$type']) &&
+      value.$mode === 'command'
+    ) {
+      return this.cmdControllerClip(key, value);
+    }
+    // AggregateCommand 类型
+    if (
+      typeOf.objStructMatch<AggregateCommandLike>(value, ['$value', '$type']) &&
+      value.$mode === 'aggregate'
+    ) {
+      return sqlAggregateCommandClip.aggrControllerClip(value);
     }
     // 字符键表达式
     if (isKey(value)) {
@@ -40,19 +54,30 @@ class MySQLCommandClip implements SQLCommandClip {
     if (typeOf.isNull(value)) {
       return 'null';
     }
-    // object、array 类型
-    if (typeOf.isObject(value) || typeOf.isArray(value)) {
-      return `cast(${escape(JSON.stringify(value))} as json)`;
+    //  array 类型
+    if (typeOf.isArray(value)) {
+      return sqlAggregateCommandClip.aggrControllerClip(
+        $.json_array(<SQLJsonArray>value)
+      );
+    }
+    // object 类型
+    if (typeOf.isObject(value)) {
+      return sqlAggregateCommandClip.aggrControllerClip(
+        $.json_object(<SQLJsonObject>value)
+      );
     }
     return '';
   }
   cmdControllerClip(key: string, command: CommandLike): string {
     // 类型 值 模式
     const { $type } = command;
-    if (!typeOf.objStructMatch<CommandProps>(command, ['$value', '$type'])) {
+    if (
+      !typeOf.objStructMatch<CommandProps>(command, ['$value', '$type']) ||
+      command.$mode !== 'command'
+    ) {
       throw errHandler.createError(
         MySQLErrorType.ARGUMENTS_TYPE_ERROR,
-        `command must be a 'AggregateCommandLike'`
+        `command must be a 'CommandLike'`
       );
     }
 

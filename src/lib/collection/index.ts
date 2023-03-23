@@ -1,11 +1,6 @@
 import { Connection, escape, FieldInfo, OkPacket, PoolConnection } from 'mysql';
 import { errHandler, MySQLErrorType } from '../../model/errorHandler';
-import {
-  objectMerge,
-  parseJson,
-  stringfyJson,
-  tinyToBoolean,
-} from '../../utils/handler';
+import { objectMerge, parseJson, tinyToBoolean } from '../../utils/handler';
 import typeOf from '../../utils/typeOf';
 import { MySQLAggregate } from '../aggregate';
 import { Aggregate } from '../aggregate/interface';
@@ -333,11 +328,9 @@ class MySQLCollection<T extends object> implements Collection<T> {
       );
     }
     try {
-      // json处理
-      const newData = <SQLRecord>stringfyJson(data);
       const insertGen = new MySQLInsertGenerator({
         $name,
-        $record: newData,
+        $record: data,
       });
 
       // sql
@@ -400,14 +393,12 @@ class MySQLCollection<T extends object> implements Collection<T> {
       );
     }
     try {
-      // json处理
-      const newData = <SQLRecord>stringfyJson(data);
       const updateGen = new MySQLUpdateGenerator({
         $name,
         $where,
         $limit,
         $orderby,
-        $record: newData,
+        $record: <SQLRecord>data,
       });
 
       // sql
@@ -449,8 +440,12 @@ class MySQLCollection<T extends object> implements Collection<T> {
         const {
           COLUMN_NAME: fieldName,
           COLUMN_DEFAULT: defaultValue,
-          COLUMN_TYPE: fieldType,
+          COLUMN_KEY: key,
         } = field;
+        // 跳过主键
+        if (key === 'PRI') {
+          return;
+        }
         newData[<keyof InsertData<T>>fieldName] = typeOf.isUndefined(
           data[<keyof InsertData<T>>fieldName]
         )

@@ -144,8 +144,8 @@ declare class MySQLAggregateCommand<T extends object = object> implements Aggreg
     json_insert<P extends [AggregateMixParamType<T>, AggregateObjectParamType<T>]>(...values: P): AggregateCommand<T>;
     json_replace<P extends [AggregateMixParamType<T>, AggregateObjectParamType<T>]>(...values: P): AggregateCommand<T>;
     json_remove<P extends [AggregateMixParamType<T>, AggregateStringParamType<T>]>(...values: P): AggregateCommand<T>;
-    json_array_append<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
-    json_array_insert<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_array_append<P extends [AggregateArrayParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    json_array_insert<P extends [AggregateArrayParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
     json_object<P extends [AggregateObjectParamType<T>]>(...values: P): AggregateCommand<T>;
     json_array<P extends [AggregateArrayParamType<T>]>(...values: P): AggregateCommand<T>;
     json_type<P extends [AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;

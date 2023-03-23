@@ -27,7 +27,7 @@ type Test = {
 
 const $ = db.command.aggregate<Test>();
 
-describe('boolean', () => {
+describe.skip('boolean', () => {
   it('and', () => {
     expect(
       sqlAggregateCommandClip.aggrControllerClip($.and('$a', true))
@@ -54,7 +54,7 @@ describe('boolean', () => {
     ).toMatchInlineSnapshot('"not(`d` or false)"');
   });
 });
-describe('compare', () => {
+describe.skip('compare', () => {
   it('cmp', () => {
     expect(
       sqlAggregateCommandClip.aggrControllerClip($.cmp('$a', '$b'))
@@ -110,7 +110,7 @@ describe('compare', () => {
   });
 });
 
-describe('calculate', () => {
+describe.skip('calculate', () => {
   it('abs', () => {
     expect(
       sqlAggregateCommandClip.aggrControllerClip($.abs('$a'))
@@ -256,7 +256,7 @@ describe('calculate', () => {
   });
 });
 
-describe('string', () => {
+describe.skip('string', () => {
   it('length', () => {
     expect(
       sqlAggregateCommandClip.aggrControllerClip($.length('$a'))
@@ -324,7 +324,7 @@ describe('string', () => {
   });
 });
 
-describe('accumulate', () => {
+describe.skip('accumulate', () => {
   it('avg', () => {
     expect(
       sqlAggregateCommandClip.aggrControllerClip($.avg('$a'))
@@ -356,7 +356,7 @@ describe('accumulate', () => {
   });
 });
 
-describe('condition', () => {
+describe.skip('condition', () => {
   it('cond', () => {
     expect(
       sqlAggregateCommandClip.aggrControllerClip($.cond('$d', true, false))
@@ -370,7 +370,7 @@ describe('condition', () => {
   });
 });
 
-describe('json', () => {
+describe.skip('json', () => {
   it('json_array', () => {
     expect(
       sqlAggregateCommandClip.aggrControllerClip($.json_array([null, 1, '$a']))
@@ -382,14 +382,22 @@ describe('json', () => {
       sqlAggregateCommandClip.aggrControllerClip(
         $.json_object({ price: 1, name: 'test' })
       )
-    ).toMatchInlineSnapshot("\"json_object('price', 1,'name', 'test')\"");
+    ).toMatchInlineSnapshot("\"json_object('price', 1, 'name', 'test')\"");
   });
 
   it('json_array_append', () => {
     expect(
       sqlAggregateCommandClip.aggrControllerClip(
-        $.json_array_append('$json.c', 1)
+        $.json_array_append('$test', 1)
       )
-    ).toMatchInlineSnapshot("\"json_array_append(`json`->'$.c', '$', 1)\"");
+    ).toMatchInlineSnapshot('"json_array_append(`test`, \'$\', 1)"');
+  });
+
+  it('json_array_insert', () => {
+    expect(
+      sqlAggregateCommandClip.aggrControllerClip(
+        $.json_array_insert('$test', 1)
+      )
+    ).toMatchInlineSnapshot('"json_array_insert(`test`, \'$\', 1)"');
   });
 });

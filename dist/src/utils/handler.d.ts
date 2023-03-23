@@ -1,5 +1,5 @@
 import { FieldInfo } from 'mysql';
-import { AggregateArrayKey, AggregateKey } from '../lib/aggregateCommand/interface';
+import { AggregateKey } from '../lib/aggregateCommand/interface';
 /**
  * @description 生成数组
  * @param value
@@ -25,37 +25,48 @@ export declare const objectMerge: (target: object, ...sourceList: (object | unde
  */
 export declare const isKey: (value: any) => value is `$${string}`;
 /**
- * @description 判断键
+ * @description 判断数组键
  * @param value
  */
-export declare const isArrayKey: (value: any) => value is AggregateArrayKey<string>;
+export declare const isArrayKey: (value: any) => value is string;
+/**
+ * @description 判断对象键
+ * @param value
+ */
+export declare const isObjectKey: (value: any) => value is string;
+/**
+ * @description 判断json键
+ * @param value
+ */
+export declare const isJsonKey: (value: any) => value is string;
 /**
  * @description 获取所有键
  * @param value
  */
-export declare const getKey: (value: AggregateKey) => string[];
+export declare const getArrayKey: (value: string) => string[];
 /**
  * @description 获取所有键
  * @param value
  */
-export declare const getArrayKey: (value: AggregateArrayKey) => string[];
+export declare const getAllKey: (value: AggregateKey) => string[][];
 /**
- * @description 获取所有键
- * @param value
+ * @description 获取键路径
+ * @param key
+ * @returns
  */
-export declare const getAllKey: (value: AggregateKey) => (string | string[])[];
+export declare const getKey: (rawKey: AggregateKey) => string;
+/**
+ * @description 获取键路径
+ * @param key
+ * @returns
+ */
+export declare const getJsonKeyPath: (key: AggregateKey) => string[];
 /**
  * @description JSON字符串结果转换为对象
  * @param fields
  * @param results
  */
 export declare const parseJson: (fields: FieldInfo[], results: any[]) => void;
-/**
- * @description 对象、数组转化JSON字符串
- * @param fields
- * @param results
- */
-export declare const stringfyJson: (data: object) => object;
 /**
  * @description tinyint(1)结果转布尔
  * @param fields

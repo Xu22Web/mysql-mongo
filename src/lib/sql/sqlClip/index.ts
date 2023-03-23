@@ -1,18 +1,27 @@
 import { escape, escapeId } from 'mysql';
 import { errHandler, MySQLErrorType } from '../../../model/errorHandler';
-import { getAllKey, isKey } from '../../../utils/handler';
+import {
+  getJsonKeyPath,
+  getKey,
+  isJsonKey,
+  isKey,
+} from '../../../utils/handler';
 import typeOf from '../../../utils/typeOf';
+import { $ } from '../../aggregateCommand';
 import {
   AggregateCommandLike,
   AggregateProps,
 } from '../../aggregateCommand/interface';
 import { CommandProps } from '../../command/interface';
+import { MySQLRegExpLike } from '../sqlCondition/regExpLike';
 import {
   SQLAlias,
   SQLFields,
   SQLFilter,
   SQLGroupBy,
   SQLHaving,
+  SQLJsonArray,
+  SQLJsonObject,
   SQLLike,
   SQLName,
   SQLNewFields,
@@ -41,7 +50,11 @@ class MySQLClip implements SqlClip {
         .map((key) => ` ${escapeId(key)} as ${escapeId(name[key])} `)
         .join(', ');
     }
-    return '';
+    // 报错：ARGUMENTS_TYPE_ERROR
+    throw errHandler.createError(
+      MySQLErrorType.ARGUMENTS_TYPE_ERROR,
+      `name must to be SQLName | SQLAlias`
+    );
   }
   fieldsClip(
     fields?: SQLFields,
@@ -114,7 +127,6 @@ class MySQLClip implements SqlClip {
         fieldsClip.push(newfieldsClip);
       }
     }
-
     return typeOf.isNotEmptyArr(fieldsClip)
       ? ` ${fieldsClip.join(', ')} `
       : ' * ';
@@ -178,8 +190,13 @@ class MySQLClip implements SqlClip {
           'In newfieldsClip, a argument type must be number, string, boolean, null, AggregateCommand, or AggregateKey'
         );
       });
+      return newfieldsClip.join(', ');
     }
-    return newfieldsClip.join(', ');
+    // 报错：ARGUMENTS_TYPE_ERROR
+    throw errHandler.createError(
+      MySQLErrorType.ARGUMENTS_TYPE_ERROR,
+      `newfields must to be SQLNewFields`
+    );
   }
   fieldFilterClip(filter?: SQLFilter): string {
     // 过滤行
@@ -214,71 +231,63 @@ class MySQLClip implements SqlClip {
   }
   regexClip(key: string, value: SQLRegex | RegExp): string {
     // 正则
-    let regex: Partial<SQLRegex | null> = null;
-    // 正则表达式
-    if (typeOf.isRegx(value)) {
-      const { flags, source } = <RegExp>value;
-      regex = { $regex: source, $options: flags };
+    let regex = new MySQLRegExpLike().create(value);
+    // 非法正则
+    if (!typeOf.objStructMatch(regex, ['$regex', '$options'])) {
+      // 报错：ARGUMENTS_TYPE_ERROR
+      throw errHandler.createError(
+        MySQLErrorType.ARGUMENTS_TYPE_ERROR,
+        `expected key is string, value is SQLRegex or RegExp`
+      );
     }
-    // SQLRegex 正则表达式
-    if (typeOf.objStructMatch(value, ['$regex', '$options'])) {
-      regex = <SQLRegex>value;
-    }
-    if (regex) {
-      // 字段
-      const fieldKey = this.keyClip(key);
-      if (typeOf.objStructMatch(<SQLRegex>regex, ['$regex', '$options'])) {
-        // SQLRegex
-        const { $options, $regex } = <SQLRegex>regex;
-        // 大小写
-        if ($options.includes('i')) {
-          // 单行
-          if (!$options.includes('m')) {
-            return `${fieldKey} regexp "^${escape($regex).replace(
-              /^'(.*)'$/,
-              '$1'
-            )}[^(\\n)]*$"`;
-          }
-          return `${fieldKey} regexp ${escape($regex)}`;
+    // 字段
+    const fieldKey = this.keyClip(key);
+    // SQLRegex
+    const { $options, $regex } = regex;
+    if ($options) {
+      // 大小写
+      if ($options.includes('i')) {
+        // 单行
+        if (!$options.includes('m')) {
+          return `${fieldKey} regexp "^${escape($regex).replace(
+            /^'(.*)'$/,
+            '$1'
+          )}[^(\\n)]*$"`;
         }
-        // 多行
-        if ($options.includes('m')) {
-          return `binary ${fieldKey} regexp ${escape($regex)}`;
-        }
-        return `binary ${fieldKey} regexp "^${escape($regex).replace(
-          /^'(.*)'$/,
-          '$1'
-        )}[^(\n)]*$"`;
+        return `${fieldKey} regexp ${escape($regex)}`;
+      }
+      // 多行
+      if ($options.includes('m')) {
+        return `binary ${fieldKey} regexp ${escape($regex)}`;
       }
     }
-    return '';
+    return `binary ${fieldKey} regexp "^${escape($regex).replace(
+      /^'(.*)'$/,
+      '$1'
+    )}[^(\n)]*$"`;
   }
-  keyClip(key: string): string {
-    // 是否是键
+  keyClip(key: string, json?: boolean): string {
+    key = key.trim();
+    // 非法 key
+    if (!key) {
+      // 报错：ARGUMENTS_TYPE_ERROR
+      throw errHandler.createError(
+        MySQLErrorType.ARGUMENTS_TYPE_ERROR,
+        `expected key is string`
+      );
+    }
+    // key
     if (isKey(key)) {
-      // 获取子键
-      const keys = getAllKey(key);
-      if (keys.length !== 1 || typeOf.isNotEmptyArr(keys[0])) {
-        // 获取字段
-        const [field, ...subFields] = keys;
-        const subKeys = subFields.map((subField) => {
-          if (typeOf.isNotEmptyArr(subField)) {
-            const [arrayField, ...indexs] = subField;
-            const indexField = indexs.map((index) => `[${index}]`).join('');
-            return `${arrayField}${indexField}`;
-          }
-          return subField;
-        });
-        if (typeOf.isNotEmptyArr(field)) {
-          const [arrayField, ...indexs] = field;
-          const indexField = indexs.map((index) => `[${index}]`).join('');
-          return `${escapeId(arrayField)}->${escape(
-            `$${[indexField, ...subKeys].join('.')}`
-          )}`;
-        }
-        return `${escapeId(field)}->${escape(`$.${subKeys.join('.')}`)}`;
+      // json
+      if (isJsonKey(key) || json) {
+        const [field, path] = getJsonKeyPath(key);
+        return `${escapeId(field)}->${escape(path)}`;
       }
-      return escapeId(keys[0]);
+      return escapeId(getKey(key));
+    }
+    // json
+    if (json) {
+      return `${escapeId(key)}->'$'`;
     }
     return escapeId(key);
   }
@@ -315,11 +324,19 @@ class MySQLClip implements SqlClip {
             }
             // 字段
             const fieldKey = this.keyClip(key);
-            // 对象、数组
-            if (typeOf.isObject(where[key]) || typeOf.isArray(where[key])) {
-              return `${fieldKey} = cast(${escape(
-                JSON.stringify(where[key])
-              )} as json)`;
+            // 对象
+            if (typeOf.isObject(where[key])) {
+              const value = sqlAggregateCommandClip.aggrControllerClip(
+                $.json_object(<SQLJsonObject>where[key])
+              );
+              return `${fieldKey} = ${value}`;
+            }
+            // 数组
+            if (typeOf.isArray(where[key])) {
+              const value = sqlAggregateCommandClip.aggrControllerClip(
+                $.json_array(<SQLJsonArray>where[key])
+              );
+              return `${fieldKey} = ${value}`;
             }
             // null
             if (typeOf.isNull(where[key])) {
@@ -491,10 +508,19 @@ class MySQLClip implements SqlClip {
             // 字段
             const fieldKey = this.keyClip(key);
             if (typeOf.isNotUndefined(record[key])) {
-              if (typeOf.isObject(record[key]) || typeOf.isArray(record[key])) {
-                return `${fieldKey} = ${escape(
-                  JSON.stringify((<SQLRecord>record)[key])
-                )}`;
+              // 对象
+              if (typeOf.isObject(record[key])) {
+                const value = sqlAggregateCommandClip.aggrControllerClip(
+                  $.json_object(<SQLJsonObject>record[key])
+                );
+                return `${fieldKey} = ${value}`;
+              }
+              // 数组
+              if (typeOf.isArray(record[key])) {
+                const value = sqlAggregateCommandClip.aggrControllerClip(
+                  $.json_array(<SQLJsonArray>record[key])
+                );
+                return `${fieldKey} = ${value}`;
               }
               return `${fieldKey} = ${escape(record[key])}`;
             }

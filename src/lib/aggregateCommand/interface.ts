@@ -1239,19 +1239,19 @@ export interface AggregateCommand<T extends object = object>
   ): AggregateCommand<T>;
   /**
    * @description json 向数组尾部追加数据
-   * @param values json value path
+   * @param values json value
    */
   json_array_append<
-    P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]
+    P extends [AggregateArrayParamType<T>, AggregateMixParamType<T>]
   >(
     ...values: P
   ): AggregateCommand<T>;
   /**
    * @description json 向数组插入数据
-   * @param values json value path
+   * @param values json value
    */
   json_array_insert<
-    P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]
+    P extends [AggregateArrayParamType<T>, AggregateMixParamType<T>]
   >(
     ...values: P
   ): AggregateCommand<T>;

@@ -1,4 +1,4 @@
-import { valuesToArr, valueToArr } from '../../utils/handler';
+import { valuesToArr } from '../../utils/handler';
 import typeOf from '../../utils/typeOf';
 import { MySQLAggregateCommand } from '../aggregateCommand';
 import { AggregateCommand } from '../aggregateCommand/interface';
@@ -11,7 +11,7 @@ import {
   CommandMixParamType,
   CommandMode,
   CommandNumberParamType,
-  CommandType
+  CommandType,
 } from './interface';
 
 /**
@@ -28,30 +28,29 @@ class MySQLCommand implements Command {
   aggregate<T extends object = object>(): AggregateCommand<T> {
     return new MySQLAggregateCommand<T>();
   }
-  and(value: Command[]): Command;
-  and(value: Command, ...rest: Command[]): Command;
+  and(value: CommandMixParamType[]): Command;
+  and(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
   and(value: any, ...rest: any[]): Command {
     const results = valuesToArr<Command>(value, rest, this);
     return new MySQLCommand(results, CommandLogicSimpleType.AND);
   }
-  or(value: Command[]): Command;
-  or(value: Command, ...rest: Command[]): Command;
+  or(value: CommandMixParamType[]): Command;
+  or(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
   or(value: any, ...rest: any[]): Command {
     const results = valuesToArr<Command>(value, rest, this);
     return new MySQLCommand(results, CommandLogicSimpleType.OR);
   }
   not(value: Command): Command {
-    const results = valueToArr<Command>(value);
-    return new MySQLCommand(results, CommandLogicNegativeType.NOT);
+    return new MySQLCommand([value], CommandLogicNegativeType.NOT);
   }
-  nor(value: Command[]): Command;
-  nor(value: Command, ...rest: Command[]): Command;
+  nor(value: CommandMixParamType[]): Command;
+  nor(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
   nor(value: any, ...rest: any[]): Command {
     const results = valuesToArr<Command>(value, rest, this);
     return new MySQLCommand(results, CommandLogicNegativeType.NOR);
   }
-  nand(value: Command[]): Command;
-  nand(value: Command, ...rest: Command[]): Command;
+  nand(value: CommandMixParamType[]): Command;
+  nand(value: CommandMixParamType, ...rest: CommandMixParamType[]): Command;
   nand(value: any, ...rest: any[]): Command {
     const results = valuesToArr<Command>(value, rest, this);
     return new MySQLCommand(results, CommandLogicNegativeType.NAND);
@@ -115,4 +114,3 @@ class MySQLCommand implements Command {
 const cmd = new MySQLCommand();
 
 export { cmd, MySQLCommand };
-
