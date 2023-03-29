@@ -33,6 +33,7 @@ db.collection<Test>('test')
 
 db.collection<Test>('test')
   .limit(3)
+  .skip(0)
   .get()
   .then((res) => console.log(res));
 

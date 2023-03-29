@@ -18505,7 +18505,7 @@ class MySQLSelectGenerator {
             throw errHandler.createError(MySQLErrorType.SQLGENERATOR_PROPERTY_ERROR, `In class 'MySQLSelectGenerator', property 'orderby' type must be 'SQLOrderBy'!`);
         }
         // limit
-        if (clipName === 'limit' || clipName === 'skip') {
+        if (clipName === 'limit') {
             if (typeOf.isNumber(value)) {
                 this.$limit = value;
                 return this;

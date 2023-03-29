@@ -165,7 +165,7 @@ class MySQLSelectGenerator implements SelectGenerator {
       );
     }
     // limit
-    if (clipName === 'limit' || clipName === 'skip') {
+    if (clipName === 'limit') {
       if (typeOf.isNumber(value)) {
         this.$limit = <SQLLimit>value;
         return this;
