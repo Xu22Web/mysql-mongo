@@ -12,6 +12,12 @@ export type RowData<T> = {
     [P in keyof T]?: T[P] extends string | number | boolean | null | SQLJson ? T[P] : never;
 };
 /**
+ * @description 结果数据
+ */
+export type ResultData<T> = {
+    [P in keyof T]: T[P] extends string | number | boolean | null | SQLJson ? T[P] : never;
+};
+/**
  * @description 记录数据
  */
 export type InsertData<T> = Partial<ConditionKey<T> | ConditionJsonObjectKey<T> | ConditionJsonArrayKey<T> | RowData<T>>;
@@ -249,7 +255,7 @@ export interface Collection<T extends object> {
      * @description 获取数据
      * @returns
      */
-    get(): Promise<QueryResult<RowData<T[]>>>;
+    get(): Promise<QueryResult<ResultData<T[]>>>;
     /**
      * @description 添加数据
      * @param data

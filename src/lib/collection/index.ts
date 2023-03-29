@@ -26,6 +26,7 @@ import {
   InsertData,
   OrderBy,
   QueryResult,
+  ResultData,
   RowData,
   RowDataPacket,
   Where,
@@ -37,15 +38,15 @@ import {
  * new MySQLCollection<T>(name)
  * .where(where)
  * .get()
- * @example // 添加数据
+ * // 添加数据
  * new MySQLCollection<T>(name)
  * .where(where)
  * .add(data)
- * @example // 删除数据
+ * // 删除数据
  * new MySQLCollection<T>(name)
  * .where(where)
  * .remove()
- * @example // 修改数据数据
+ * // 修改数据
  * new MySQLCollection<T>(name)
  * .where(where)
  * .update(data)
@@ -250,7 +251,7 @@ class MySQLCollection<T extends object> implements Collection<T> {
       status: false,
     };
   }
-  async get(): Promise<QueryResult<RowData<T[]>>> {
+  async get(): Promise<QueryResult<ResultData<T[]>>> {
     const { $name, $filter, $where, $skip, $orderby, $limit } = this;
     // name
     if (!typeOf.isNotBlankStr($name)) {

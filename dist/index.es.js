@@ -19000,15 +19000,15 @@ class MySQLAggregate {
  * new MySQLCollection<T>(name)
  * .where(where)
  * .get()
- * @example // 添加数据
+ * // 添加数据
  * new MySQLCollection<T>(name)
  * .where(where)
  * .add(data)
- * @example // 删除数据
+ * // 删除数据
  * new MySQLCollection<T>(name)
  * .where(where)
  * .remove()
- * @example // 修改数据数据
+ * // 修改数据
  * new MySQLCollection<T>(name)
  * .where(where)
  * .update(data)

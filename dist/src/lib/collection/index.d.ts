@@ -1,22 +1,22 @@
 import { Connection, FieldInfo, OkPacket, PoolConnection } from 'mysql';
 import { Aggregate } from '../aggregate/interface';
 import { Database, DatabaseType } from '../database/interface';
-import { Collection, CollectionConfig, CollectionProps, Filter, InsertData, OrderBy, QueryResult, RowData, RowDataPacket, Where } from './interface';
+import { Collection, CollectionConfig, CollectionProps, Filter, InsertData, OrderBy, QueryResult, ResultData, RowData, RowDataPacket, Where } from './interface';
 /**
  * @description MySQL 集合
  * @example // 获取数据
  * new MySQLCollection<T>(name)
  * .where(where)
  * .get()
- * @example // 添加数据
+ * // 添加数据
  * new MySQLCollection<T>(name)
  * .where(where)
  * .add(data)
- * @example // 删除数据
+ * // 删除数据
  * new MySQLCollection<T>(name)
  * .where(where)
  * .remove()
- * @example // 修改数据数据
+ * // 修改数据
  * new MySQLCollection<T>(name)
  * .where(where)
  * .update(data)
@@ -45,7 +45,7 @@ declare class MySQLCollection<T extends object> implements Collection<T> {
         fields: FieldInfo[] | undefined;
     }>;
     count(): Promise<QueryResult<number>>;
-    get(): Promise<QueryResult<RowData<T[]>>>;
+    get(): Promise<QueryResult<ResultData<T[]>>>;
     add(data: RowData<T>): Promise<QueryResult<OkPacket>>;
     remove(): Promise<QueryResult<OkPacket>>;
     update(data: InsertData<T>): Promise<QueryResult<OkPacket>>;
