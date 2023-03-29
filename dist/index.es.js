@@ -19570,6 +19570,22 @@ class MySQLConnectionController {
 }
 
 /**
+ * @description MySQL 模糊匹配
+ */
+class MySQLLike {
+    $like;
+    $options;
+    constructor($like, $options) {
+        this.$like = $like;
+        this.$options = $options;
+    }
+    create(like) {
+        const { $like, $options } = like;
+        return new MySQLLike($like, $options);
+    }
+}
+
+/**
  * @description MySQl 事务
  */
 class MySQLTransaction {
@@ -19634,6 +19650,10 @@ class MySQLDatabase {
     RegExp(regexp) {
         const newRegExp = new MySQLRegExpLike();
         return newRegExp.create(regexp);
+    }
+    Like(like) {
+        const newLike = new MySQLLike();
+        return newLike.create(like);
     }
     createPool() {
         // 创建连接池

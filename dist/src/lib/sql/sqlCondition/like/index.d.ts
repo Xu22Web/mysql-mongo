@@ -6,6 +6,6 @@ declare class MySQLLike implements Like {
     $like?: string;
     $options?: string;
     constructor($like?: string, $options?: string);
-    create({ $like, $options }: LikeConfig): MySQLLike;
+    create(like: LikeConfig): MySQLLike;
 }
 export default MySQLLike;

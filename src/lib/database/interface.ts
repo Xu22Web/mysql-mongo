@@ -2,6 +2,7 @@ import { Connection, ConnectionConfig, Pool, PoolConfig } from 'mysql';
 import { Collection } from '../collection/interface';
 import { Command } from '../command/interface';
 import { ConnectionController } from '../connectionController/interface';
+import { Like, LikeConfig } from '../sql/sqlCondition/like/interface';
 import {
   RegExpLike,
   RegExpLikeConfig,
@@ -61,8 +62,13 @@ export interface Database<T extends DatabaseType> {
    */
   RegExp(regexp: RegExpLikeConfig | RegExp): RegExpLike;
   /**
+   * @description 构造模糊匹配表达式
+   * @param regexp
+   */
+  Like(like: LikeConfig): Like;
+  /**
    * @description 获取集合
-   * @param name
+   * @param name 集合名
    */
   collection<T extends object = object>(name: string): Collection<T>;
   /**

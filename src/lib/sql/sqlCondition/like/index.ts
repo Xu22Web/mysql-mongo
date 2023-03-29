@@ -10,7 +10,8 @@ class MySQLLike implements Like {
     this.$like = $like;
     this.$options = $options;
   }
-  create({ $like, $options }: LikeConfig): MySQLLike {
+  create(like: LikeConfig): MySQLLike {
+    const { $like, $options } = like;
     return new MySQLLike($like, $options);
   }
 }

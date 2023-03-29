@@ -5,6 +5,8 @@ import { cmd } from '../command';
 import { Command } from '../command/interface';
 import { MySQLConnectionController } from '../connectionController';
 import { ConnectionController } from '../connectionController/interface';
+import MySQLLike from '../sql/sqlCondition/like';
+import { Like, LikeConfig } from '../sql/sqlCondition/like/interface';
 import { MySQLRegExpLike } from '../sql/sqlCondition/regExpLike';
 import {
   RegExpLike,
@@ -47,6 +49,10 @@ class MySQLDatabase<T extends DatabaseType> implements Database<T> {
   RegExp(regexp: RegExp | RegExpLikeConfig): RegExpLike {
     const newRegExp = new MySQLRegExpLike();
     return newRegExp.create(regexp);
+  }
+  Like(like: LikeConfig): Like {
+    const newLike = new MySQLLike();
+    return newLike.create(like);
   }
   createPool(): Pool {
     // 创建连接池
