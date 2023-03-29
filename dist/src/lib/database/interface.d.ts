@@ -55,8 +55,8 @@ export interface Database<T extends DatabaseType> {
      */
     RegExp(regexp: RegExpLikeConfig | RegExp): RegExpLike;
     /**
-     * @description 构造模糊匹配表达式
-     * @param regexp
+     * @description 构造模糊匹配
+     * @param like
      */
     Like(like: LikeConfig): Like;
     /**
