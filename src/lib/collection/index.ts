@@ -328,10 +328,18 @@ class MySQLCollection<T extends object> implements Collection<T> {
         'data is an invalid value'
       );
     }
+    // 新数据
+    const newData: RowData<T> = {};
+    for (const key in data) {
+      if (typeOf.isNotUndefined(data[<keyof RowData<T>>key])) {
+        // 普通类型处理
+        newData[<keyof RowData<T>>key] = data[<keyof RowData<T>>key];
+      }
+    }
     try {
       const insertGen = new MySQLInsertGenerator({
         $name,
-        $record: data,
+        $record: newData,
       });
 
       // sql
@@ -393,13 +401,21 @@ class MySQLCollection<T extends object> implements Collection<T> {
         'data is an invalid value'
       );
     }
+    // 新数据
+    const newData: InsertData<T> = {};
+    for (const key in data) {
+      if (typeOf.isNotUndefined(data[<keyof InsertData<T>>key])) {
+        // 普通类型处理
+        newData[<keyof InsertData<T>>key] = data[<keyof InsertData<T>>key];
+      }
+    }
     try {
       const updateGen = new MySQLUpdateGenerator({
         $name,
         $where,
         $limit,
         $orderby,
-        $record: <SQLRecord>data,
+        $record: <SQLRecord>newData,
       });
 
       // sql

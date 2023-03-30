@@ -507,23 +507,21 @@ class MySQLClip implements SqlClip {
           .map((key) => {
             // 字段
             const fieldKey = this.keyClip(key);
-            if (typeOf.isNotUndefined(record[key])) {
-              // 对象
-              if (typeOf.isObject(record[key])) {
-                const value = sqlAggregateCommandClip.aggrControllerClip(
-                  $.json_object(<SQLJsonObject>record[key])
-                );
-                return `${fieldKey} = ${value}`;
-              }
-              // 数组
-              if (typeOf.isArray(record[key])) {
-                const value = sqlAggregateCommandClip.aggrControllerClip(
-                  $.json_array(<SQLJsonArray>record[key])
-                );
-                return `${fieldKey} = ${value}`;
-              }
-              return `${fieldKey} = ${escape(record[key])}`;
+            // 对象
+            if (typeOf.isObject(record[key])) {
+              const value = sqlAggregateCommandClip.aggrControllerClip(
+                $.json_object(<SQLJsonObject>record[key])
+              );
+              return `${fieldKey} = ${value}`;
             }
+            // 数组
+            if (typeOf.isArray(record[key])) {
+              const value = sqlAggregateCommandClip.aggrControllerClip(
+                $.json_array(<SQLJsonArray>record[key])
+              );
+              return `${fieldKey} = ${value}`;
+            }
+            return `${fieldKey} = ${escape(record[key])}`;
           })
           .join(', ')
       );

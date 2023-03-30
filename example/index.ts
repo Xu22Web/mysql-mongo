@@ -41,6 +41,7 @@ db.collection<Test>('test')
   .where({ _id })
   .update({
     a: 1,
+    b: undefined,
   })
   .then((res) => console.log(res));
 

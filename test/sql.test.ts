@@ -68,12 +68,12 @@ describe.skip('sql', () => {
     expect(
       new MySQLUpdateGenerator()
         .set('name', 'test')
-        .set('record', { json: { c: [100] } })
+        .set('record', { json: { c: [100] }, a: undefined })
         .set('where', { json: true })
         .set('orderby', { test: 'asc' })
         .generate()
     ).toBe(
-      "update `test`  set `json` = json_object('c', json_array(100)) where binary `json` = true order by `test` asc"
+      "update `test`  set `json` = json_object('c', json_array(100)), `a` = NULL where binary `json` = true order by `test` asc"
     );
   });
 });

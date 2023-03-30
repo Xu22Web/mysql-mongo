@@ -18198,19 +18198,17 @@ class MySQLClip {
                 .map((key) => {
                 // 字段
                 const fieldKey = this.keyClip(key);
-                if (typeOf.isNotUndefined(record[key])) {
-                    // 对象
-                    if (typeOf.isObject(record[key])) {
-                        const value = sqlAggregateCommandClip.aggrControllerClip($.json_object(record[key]));
-                        return `${fieldKey} = ${value}`;
-                    }
-                    // 数组
-                    if (typeOf.isArray(record[key])) {
-                        const value = sqlAggregateCommandClip.aggrControllerClip($.json_array(record[key]));
-                        return `${fieldKey} = ${value}`;
-                    }
-                    return `${fieldKey} = ${mysqlExports.escape(record[key])}`;
+                // 对象
+                if (typeOf.isObject(record[key])) {
+                    const value = sqlAggregateCommandClip.aggrControllerClip($.json_object(record[key]));
+                    return `${fieldKey} = ${value}`;
                 }
+                // 数组
+                if (typeOf.isArray(record[key])) {
+                    const value = sqlAggregateCommandClip.aggrControllerClip($.json_array(record[key]));
+                    return `${fieldKey} = ${value}`;
+                }
+                return `${fieldKey} = ${mysqlExports.escape(record[key])}`;
             })
                 .join(', '));
         }
@@ -19240,10 +19238,18 @@ class MySQLCollection {
         if (!typeOf.isNotEmptyObj(data)) {
             throw errHandler.createError(MySQLErrorType.COLLECTION_ADD_ERROR, 'data is an invalid value');
         }
+        // 新数据
+        const newData = {};
+        for (const key in data) {
+            if (typeOf.isNotUndefined(data[key])) {
+                // 普通类型处理
+                newData[key] = data[key];
+            }
+        }
         try {
             const insertGen = new MySQLInsertGenerator({
                 $name,
-                $record: data,
+                $record: newData,
             });
             // sql
             const sql = insertGen.generate();
@@ -19294,13 +19300,21 @@ class MySQLCollection {
         if (!typeOf.isNotEmptyObj(data)) {
             throw errHandler.createError(MySQLErrorType.COLLECTION_UPDATE_ERROR, 'data is an invalid value');
         }
+        // 新数据
+        const newData = {};
+        for (const key in data) {
+            if (typeOf.isNotUndefined(data[key])) {
+                // 普通类型处理
+                newData[key] = data[key];
+            }
+        }
         try {
             const updateGen = new MySQLUpdateGenerator({
                 $name,
                 $where,
                 $limit,
                 $orderby,
-                $record: data,
+                $record: newData,
             });
             // sql
             const sql = updateGen.generate();
