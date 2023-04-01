@@ -233,6 +233,7 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
     if ($type === AggregateJsonType.ARRAY_INSERT) {
       return this.json_array_insert(aggregate);
     }
+    // 匹配操作
     if ($type === AggregateMatchType.REGEXP) {
       return this.regexp(aggregate);
     }
@@ -292,14 +293,14 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
     const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
-    return args.join(` ${symbol} `);
+    return `(${args.join(` ${symbol} `)})`;
   }
   or(aggregate: AggregateProps): string {
     // 值
     const { $value: rawArgs, $type: symbol } = aggregate;
     // 参数
     const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
-    return args.join(` ${symbol} `);
+    return `(${args.join(` ${symbol} `)})`;
   }
   not(aggregate: AggregateProps): string {
     // 值
@@ -387,7 +388,7 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
     const args = (<any[]>rawArgs[1])!.map((rawArg) =>
       this.aggrValueClip(rawArg)
     );
-    return `${field} ${symbol} (${args.join(', ')})`;
+    return `(${field} ${symbol} (${args.join(', ')}))`;
   }
   nin(aggregate: AggregateProps): string {
     // 值
@@ -397,7 +398,7 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
     const args = (<any[]>rawArgs[1]).map((rawArg) =>
       this.aggrValueClip(rawArg)
     );
-    return `${field} ${symbol} (${args.join(', ')})`;
+    return `(${field} ${symbol} (${args.join(', ')}))`;
   }
   abs(aggregate: AggregateProps): string {
     // 值
@@ -784,26 +785,26 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
     const key = rawArgs[0];
     const regexp = rawArgs[1];
     const options = rawArgs[2];
-    return sqlClip.regexClip(
+    return `(${sqlClip.regexClip(
       <string>key,
       <SQLRegex>{
         $regex: regexp,
         $options: options,
       }
-    );
+    )})`;
   }
   like(aggregate: AggregateProps): string {
     const { $value: rawArgs } = aggregate;
     const key = rawArgs[0];
     const like = rawArgs[1];
     const options = rawArgs[2];
-    return sqlClip.likeClip(
+    return `(${sqlClip.likeClip(
       <string>key,
       <SQLLike>{
         $like: like,
         $options: options,
       }
-    );
+    )})`;
   }
 }
 
