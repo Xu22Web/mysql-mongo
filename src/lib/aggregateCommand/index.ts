@@ -7,6 +7,7 @@ import {
   AggregateBooleanSimpleType,
   AggregateCalculationFunctionType,
   AggregateCalculationSimpleType,
+  AggregateCastType,
   AggregateCommand,
   AggregateCommandLike,
   AggregateCommandType,
@@ -21,6 +22,7 @@ import {
   AggregateSeachOptions,
   AggregateStringParamType,
   AggregateStringType,
+  AggregateUtilType,
 } from './interface';
 
 /**
@@ -622,6 +624,11 @@ class MySQLAggregateCommand<T extends object = object>
     ]
   >(...values: P): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateMatchType.LIKE);
+  }
+  cast<P extends [AggregateMixParamType<T>, AggregateCastType]>(
+    ...values: P
+  ): AggregateCommand<T> {
+    return new MySQLAggregateCommand(values, AggregateUtilType.CAST);
   }
 }
 

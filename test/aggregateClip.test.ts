@@ -436,3 +436,11 @@ describe.skip('match', () => {
     ).toMatchInlineSnapshot('"not(`name` like \'matchRegExp\')"');
   });
 });
+
+describe.skip('util', () => {
+  it('cast', async () => {
+    expect(
+      sqlAggregateCommandClip.aggrControllerClip($.cast('1', 'signed'))
+    ).toMatchInlineSnapshot('"cast(\'1\' as signed)"');
+  });
+});

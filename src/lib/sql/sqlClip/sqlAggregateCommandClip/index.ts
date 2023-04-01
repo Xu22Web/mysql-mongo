@@ -23,6 +23,7 @@ import {
   AggregateMixParamType,
   AggregateProps,
   AggregateStringType,
+  AggregateUtilType,
 } from '../../../aggregateCommand/interface';
 import { SQLJsonObject, SQLLike, SQLRegex } from '../../sqlGenerator/interface';
 import { SQLAggregateCommandClip } from './interface';
@@ -239,6 +240,10 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
     }
     if ($type === AggregateMatchType.LIKE) {
       return this.like(aggregate);
+    }
+    // 工具操作符
+    if ($type === AggregateUtilType.CAST) {
+      return this.cast(aggregate);
     }
     throw errHandler.createError(
       MySQLErrorType.ARGUMENTS_TYPE_ERROR,
@@ -805,6 +810,11 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
         $options: options,
       }
     )})`;
+  }
+  cast(aggregate: AggregateProps): string {
+    const { $value: rawArgs, $type: symbol } = aggregate;
+    const args = this.aggrValueClip(rawArgs[0]);
+    return `${symbol}(${args} as ${rawArgs[1]})`;
   }
 }
 

@@ -87,6 +87,7 @@ declare class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
     json_unquote(aggregate: AggregateProps): string;
     regexp(aggregate: AggregateProps): string;
     like(aggregate: AggregateProps): string;
+    cast(aggregate: AggregateProps): string;
 }
 declare const sqlAggregateCommandClip: MySQLAggregateCommandClip;
 export { sqlAggregateCommandClip, MySQLAggregateCommandClip };

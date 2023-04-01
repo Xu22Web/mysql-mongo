@@ -16519,6 +16519,16 @@ var AggregateMatchType;
      */
     AggregateMatchType["LIKE"] = "like";
 })(AggregateMatchType || (AggregateMatchType = {}));
+/**
+ * @description 聚合工具类型
+ */
+var AggregateUtilType;
+(function (AggregateUtilType) {
+    /**
+     * @description 类型转换
+     */
+    AggregateUtilType["CAST"] = "cast";
+})(AggregateUtilType || (AggregateUtilType = {}));
 
 /**
  * @description MySQl 聚合命令
@@ -16789,6 +16799,9 @@ class MySQLAggregateCommand {
     like(...values) {
         return new MySQLAggregateCommand(values, AggregateMatchType.LIKE);
     }
+    cast(...values) {
+        return new MySQLAggregateCommand(values, AggregateUtilType.CAST);
+    }
 }
 const $ = new MySQLAggregateCommand();
 
@@ -17020,6 +17033,10 @@ class MySQLAggregateCommandClip {
         }
         if ($type === AggregateMatchType.LIKE) {
             return this.like(aggregate);
+        }
+        // 工具操作符
+        if ($type === AggregateUtilType.CAST) {
+            return this.cast(aggregate);
         }
         throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, `aggragte.type don't exist`);
     }
@@ -17567,6 +17584,11 @@ class MySQLAggregateCommandClip {
             $like: like,
             $options: options,
         })})`;
+    }
+    cast(aggregate) {
+        const { $value: rawArgs, $type: symbol } = aggregate;
+        const args = this.aggrValueClip(rawArgs[0]);
+        return `${symbol}(${args} as ${rawArgs[1]})`;
     }
 }
 const sqlAggregateCommandClip = new MySQLAggregateCommandClip();

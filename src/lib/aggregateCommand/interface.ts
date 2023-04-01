@@ -472,6 +472,31 @@ export enum AggregateMatchType {
   LIKE = 'like',
 }
 /**
+ * @description 聚合工具类型
+ */
+export enum AggregateUtilType {
+  /**
+   * @description 类型转换
+   */
+  CAST = 'cast',
+}
+/**
+ * @description 转换类型
+ */
+export type AggregateCastType =
+  | 'binary'
+  | `binary(${number})`
+  | 'char'
+  | `char(${number})`
+  | 'date'
+  | 'datetime'
+  | 'decimal'
+  | `decimal(${number})`
+  | `decimal(${number},${number})`
+  | `signed`
+  | 'time'
+  | 'unsigned';
+/**
  * @description 搜索配置
  */
 export type AggregateSeachOptions = 'one' | 'all';
@@ -517,7 +542,8 @@ export type AggregateCommandType =
   | AggregateAccumulationType
   | AggregateConditionType
   | AggregateJsonType
-  | AggregateMatchType;
+  | AggregateMatchType
+  | AggregateUtilType;
 /**
  * @description 特殊类型属性
  */
@@ -1360,6 +1386,13 @@ export interface AggregateCommand<T extends object = object>
       AggregateStringParamType<T>
     ]
   >(
+    ...values: P
+  ): AggregateCommand<T>;
+  /**
+   * @description 类型转换
+   * @param values
+   */
+  cast<P extends [AggregateMixParamType<T>, AggregateCastType]>(
     ...values: P
   ): AggregateCommand<T>;
 }

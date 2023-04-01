@@ -1,5 +1,5 @@
 import { CommandMode } from '../command/interface';
-import { AggregateArrayParamType, AggregateCommand, AggregateCommandLike, AggregateCommandType, AggregateMixParamType, AggregateNumberParamType, AggregateObjectParamType, AggregateSeachOptions, AggregateStringParamType } from './interface';
+import { AggregateArrayParamType, AggregateCastType, AggregateCommand, AggregateCommandLike, AggregateCommandType, AggregateMixParamType, AggregateNumberParamType, AggregateObjectParamType, AggregateSeachOptions, AggregateStringParamType } from './interface';
 /**
  * @description MySQl 聚合命令
  */
@@ -167,6 +167,7 @@ declare class MySQLAggregateCommand<T extends object = object> implements Aggreg
         AggregateStringParamType<T>,
         AggregateStringParamType<T>
     ]>(...values: P): AggregateCommand<T>;
+    cast<P extends [AggregateMixParamType<T>, AggregateCastType]>(...values: P): AggregateCommand<T>;
 }
 declare const $: MySQLAggregateCommand<object>;
 export { $, MySQLAggregateCommand };
