@@ -292,7 +292,6 @@ class MySQLClip implements SqlClip {
     if (typeOf.isNotEmptyObj(where)) {
       // 前缀
       whereClip.push(' where ');
-      console.log('where', where);
       //  Aggregate命令
       if (
         typeOf.objStructMatch<AggregateCommandLike>(where, ['$value', '$type'])
@@ -391,7 +390,6 @@ class MySQLClip implements SqlClip {
     if (typeOf.isNotEmptyObj(having)) {
       // 前缀
       havingClip.push(' having ');
-      console.log('having', having);
       //  Aggregate命令
       if (
         typeOf.objStructMatch<AggregateCommandLike>(having, ['$value', '$type'])
