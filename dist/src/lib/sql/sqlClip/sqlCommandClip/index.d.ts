@@ -4,7 +4,7 @@ import { SQLCommandClip } from './interface';
  * @description command clip 片段
  */
 declare class MySQLCommandClip implements SQLCommandClip {
-    cmdValueClip(key: string, value: CommandMixParamType): string | null;
+    cmdValueClip(key: string, value: CommandMixParamType): string;
     cmdControllerClip(key: string, command: CommandLike): string;
     and(key: string, command: CommandProps): string;
     or(key: string, command: CommandProps): string;

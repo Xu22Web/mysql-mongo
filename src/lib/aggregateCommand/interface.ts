@@ -1,3 +1,4 @@
+import { CommandMode } from '../command/interface';
 import { SQLJsonArray, SQLJsonObject } from '../sql/sqlGenerator/interface';
 /**
  * @description 无类型
@@ -343,7 +344,7 @@ export enum AggregateConditionType {
   IFNULL = 'ifNull',
 }
 /**
- * @description 条件操作符
+ * @description json操作符
  */
 export enum AggregateJsonType {
   /**
@@ -458,6 +459,19 @@ export enum AggregateJsonType {
   UNQUOTE = 'json_unquote',
 }
 /**
+ * @description 匹配操作符
+ */
+export enum AggregateMatchType {
+  /**
+   * @description 正则匹配
+   */
+  REGEXP = 'regexp',
+  /**
+   * @description 模糊匹配
+   */
+  LIKE = 'like',
+}
+/**
  * @description 搜索配置
  */
 export type AggregateSeachOptions = 'one' | 'all';
@@ -473,10 +487,6 @@ export type AggregateArrayKey<T extends string = string> =
   | `${T}[${number}]`
   | `${T}[${number}][${number}]`
   | `${T}[${number}][${number}][${number}]`;
-/**
- * @description 聚合操作模式
- */
-export type AggregateCommandMode = 'aggregate';
 /**
  * @description 算术操作符
  */
@@ -506,7 +516,8 @@ export type AggregateCommandType =
   | AggregateStringType
   | AggregateAccumulationType
   | AggregateConditionType
-  | AggregateJsonType;
+  | AggregateJsonType
+  | AggregateMatchType;
 /**
  * @description 特殊类型属性
  */
@@ -630,7 +641,7 @@ export interface AggregateProps {
   /**
    * @description 聚合模式
    */
-  $mode: AggregateCommandMode;
+  $mode: CommandMode;
   /**
    * @description 聚合类型
    */
@@ -653,7 +664,7 @@ export interface AggregateCommand<T extends object = object>
    * @description 聚合模式
    * @param values
    */
-  $mode: AggregateCommandMode;
+  $mode: CommandMode;
   /**
    * @description 逻辑操作符 且
    * @param values
@@ -1323,6 +1334,32 @@ export interface AggregateCommand<T extends object = object>
    * @param values
    */
   json_unquote<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
+    ...values: P
+  ): AggregateCommand<T>;
+  /**
+   * @description 正则匹配
+   * @param values regexp options
+   */
+  regexp<
+    P extends [
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>
+    ]
+  >(
+    ...values: P
+  ): AggregateCommand<T>;
+  /**
+   * @description 模糊匹配
+   * @param values likeexp options
+   */
+  like<
+    P extends [
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>
+    ]
+  >(
     ...values: P
   ): AggregateCommand<T>;
 }

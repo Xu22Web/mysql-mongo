@@ -1,5 +1,9 @@
 import { FieldInfo, Types } from 'mysql';
-import { AggregateKey } from '../lib/aggregateCommand/interface';
+import {
+  AggregateKey,
+  AggregateProps,
+} from '../lib/aggregateCommand/interface';
+import { CommandProps } from '../lib/command/interface';
 import typeOf from './typeOf';
 
 /**
@@ -224,7 +228,6 @@ export const parseJson = (fields: FieldInfo[], results: any[]) => {
     });
 };
 
-
 /**
  * @description tinyint(1)结果转布尔
  * @param fields
@@ -240,4 +243,28 @@ export const tinyToBoolean = (fields: FieldInfo[], results: any[]) => {
         }
       });
     });
+};
+
+/**
+ * @description 是聚合操作
+ * @param value
+ * @returns
+ */
+export const isAggregateCommand = (value: any): value is AggregateProps => {
+  return (
+    typeOf.objStructMatch<CommandProps>(value, ['$value', '$type']) &&
+    value.$mode === 'aggregate'
+  );
+};
+
+/**
+ * @description 是命令操作
+ * @param value
+ * @returns
+ */
+export const isCommand = (value: any): value is CommandProps => {
+  return (
+    typeOf.objStructMatch<AggregateProps>(value, ['$value', '$type']) &&
+    value.$mode === 'command'
+  );
 };

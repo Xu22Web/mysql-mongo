@@ -18,7 +18,7 @@ export type SQLCommandClip<
    * @param key
    * @param value
    */
-  cmdValueClip(key: string, value: CommandMixParamType): string | null;
+  cmdValueClip(key: string, value: CommandMixParamType): string;
   /**
    * @description 命令操作控制
    * @param command 命令

@@ -1,4 +1,5 @@
-import { valueToArr } from '../../utils/handler';
+import { valueToArr } from '../../utils/utils';
+import { CommandMode } from '../command/interface';
 import {
   AggregateAccumulationType,
   AggregateArrayParamType,
@@ -8,12 +9,12 @@ import {
   AggregateCalculationSimpleType,
   AggregateCommand,
   AggregateCommandLike,
-  AggregateCommandMode,
   AggregateCommandType,
   AggregateCompareFilterType,
   AggregateCompareSimpleType,
   AggregateConditionType,
   AggregateJsonType,
+  AggregateMatchType,
   AggregateMixParamType,
   AggregateNumberParamType,
   AggregateObjectParamType,
@@ -29,7 +30,7 @@ import {
 class MySQLAggregateCommand<T extends object = object>
   implements AggregateCommand<T>
 {
-  $mode: AggregateCommandMode = 'aggregate';
+  $mode: CommandMode = 'aggregate';
   $type: AggregateCommandType | undefined;
   $value:
     | (
@@ -603,6 +604,24 @@ class MySQLAggregateCommand<T extends object = object>
     ...values: P
   ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateJsonType.UNQUOTE);
+  }
+  regexp<
+    P extends [
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>
+    ]
+  >(...values: P): AggregateCommand<T> {
+    return new MySQLAggregateCommand(values, AggregateMatchType.REGEXP);
+  }
+  like<
+    P extends [
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>,
+      AggregateStringParamType<T>
+    ]
+  >(...values: P): AggregateCommand<T> {
+    return new MySQLAggregateCommand(values, AggregateMatchType.LIKE);
   }
 }
 

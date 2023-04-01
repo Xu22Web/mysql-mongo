@@ -97,7 +97,7 @@ export type CommandType = CommandNoneType | CommandLogicType | CommandCompareTyp
 /**
  * @description 命令模式
  */
-export type CommandMode = 'command';
+export type CommandMode = 'command' | 'aggregate';
 /**
  * @description 命令类型
  */

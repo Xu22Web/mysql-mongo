@@ -1,5 +1,5 @@
 import { AggregateKey } from '../aggregateCommand/interface';
-import { Collection, QueryResult, RowData } from '../collection/interface';
+import { Collection, QueryResult, ResultData } from '../collection/interface';
 import { SelectGenerator } from '../sql/sqlGenerator/select/interface';
 import { Aggregate, AggregateFields, AggregateFilter, AggregateGroup, AggregateMatch, AggregateProject, AggregateSort, AggregateTask } from './interface';
 /**
@@ -13,7 +13,7 @@ declare class MySQLAggregate<T extends object> implements Aggregate<T> {
     preTaskList(): Promise<string>;
     addFields(fields: AggregateFields): Aggregate<T>;
     count(fieldName: AggregateKey): Aggregate<T>;
-    end(): Promise<QueryResult<RowData<T[]>>>;
+    end(): Promise<QueryResult<ResultData<T[]>>>;
     group(group: AggregateGroup): Aggregate<T>;
     skip(skip: number): Aggregate<T>;
     limit(limit: number): Aggregate<T>;

@@ -81,8 +81,8 @@ export type SQLName = string;
 /**
  * @description 筛选
  */
-export type SQLWhere = {
-    [key: string]: number | string | boolean | SQLJson | RegExp | SQLRegex | SQLLike | CommandLike | AggregateCommandLike | null | undefined;
+export type SQLWhere = AggregateCommandLike | {
+    [key: string]: number | string | boolean | SQLJson | RegExp | SQLRegex | SQLLike | CommandLike | AggregateCommandLike | null;
 };
 /**
  * @description 分组

@@ -23,6 +23,7 @@ type Test = {
   json: { c: number; b: number };
   test: { test: number }[];
   d: boolean;
+  name: string;
 };
 
 const $ = db.command.aggregate<Test>();
@@ -399,5 +400,39 @@ describe.skip('json', () => {
         $.json_array_insert('$test', 1)
       )
     ).toMatchInlineSnapshot('"json_array_insert(`test`, \'$\', 1)"');
+  });
+});
+
+describe.skip('match', () => {
+  it('regexp', () => {
+    expect(
+      sqlAggregateCommandClip.aggrControllerClip(
+        $.regexp('$name', 'matchRegExp', 'mi')
+      )
+    ).toMatchInlineSnapshot('"`name` regexp \'matchRegExp\'"');
+  });
+
+  it('not regexp', () => {
+    expect(
+      sqlAggregateCommandClip.aggrControllerClip(
+        $.not($.regexp('$name', 'matchRegExp', 'mi'))
+      )
+    ).toMatchInlineSnapshot('"not(`name` regexp \'matchRegExp\')"');
+  });
+
+  it('like', async () => {
+    expect(
+      sqlAggregateCommandClip.aggrControllerClip(
+        $.like('$name', 'matchRegExp', 'mi')
+      )
+    ).toMatchInlineSnapshot('"`name` like \'matchRegExp\'"');
+  });
+
+  it('not like', async () => {
+    expect(
+      sqlAggregateCommandClip.aggrControllerClip(
+        $.not($.like('$name', 'matchRegExp', 'mi'))
+      )
+    ).toMatchInlineSnapshot('"not(`name` like \'matchRegExp\')"');
   });
 });

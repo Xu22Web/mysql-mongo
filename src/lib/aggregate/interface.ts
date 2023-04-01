@@ -2,7 +2,7 @@ import {
   AggregateCommandLike,
   AggregateKey,
 } from '../aggregateCommand/interface';
-import { Collection, QueryResult, RowData } from '../collection/interface';
+import { Collection, QueryResult, ResultData } from '../collection/interface';
 import { Command } from '../command/interface';
 
 /**
@@ -78,7 +78,7 @@ export interface Aggregate<T extends object> {
    * })
    * .end()
    */
-  end(): Promise<QueryResult<RowData<T[]>>>;
+  end(): Promise<QueryResult<ResultData<T[]>>>;
   /**
    * @description 将输入记录按给定表达式分组，输出时每个记录代表一个分组，每个记录的 _id 是区分不同组的 key。输出记录中也可以包括累计值，将输出字段设为累计值即会从该分组中计算累计值。
    * @example

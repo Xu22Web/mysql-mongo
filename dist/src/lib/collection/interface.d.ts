@@ -1,7 +1,7 @@
 import { Connection, FieldInfo, OkPacket } from 'mysql';
 import { SpecificType, StringExtendsType } from '../../utils/utilsTypes';
 import { Aggregate } from '../aggregate/interface';
-import { AggregateCommand, AggregateKey } from '../aggregateCommand/interface';
+import { AggregateCommand, AggregateCommandLike, AggregateKey } from '../aggregateCommand/interface';
 import { CommandLike } from '../command/interface';
 import { Database, DatabaseType } from '../database/interface';
 import { SQLJson, SQLJsonArray, SQLJsonObject, SQLLike, SQLLimit, SQLRegex, SQLSkip } from '../sql/sqlGenerator/interface';
@@ -32,7 +32,7 @@ export type Filter<T> = {
 /**
  * @description 筛选条件
  */
-export type Where<T> = ConditionExtendsType<T> | ConditionExtendsType<ConditionKey<T>> | ConditionExtendsType<ConditionJsonObjectKey<T>> | ConditionExtendsType<ConditionJsonArrayKey<T>>;
+export type Where<T> = AggregateCommandLike | ConditionExtendsType<T> | ConditionExtendsType<ConditionKey<T>> | ConditionExtendsType<ConditionJsonObjectKey<T>> | ConditionExtendsType<ConditionJsonArrayKey<T>>;
 /**
  * @description 类型扩展
  */

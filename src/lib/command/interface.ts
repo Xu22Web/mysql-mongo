@@ -107,7 +107,7 @@ export type CommandType =
 /**
  * @description 命令模式
  */
-export type CommandMode = 'command';
+export type CommandMode = 'command' | 'aggregate';
 /**
  * @description 命令类型
  */

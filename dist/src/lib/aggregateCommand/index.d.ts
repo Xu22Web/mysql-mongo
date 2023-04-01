@@ -1,9 +1,10 @@
-import { AggregateArrayParamType, AggregateCommand, AggregateCommandLike, AggregateCommandMode, AggregateCommandType, AggregateMixParamType, AggregateNumberParamType, AggregateObjectParamType, AggregateSeachOptions, AggregateStringParamType } from './interface';
+import { CommandMode } from '../command/interface';
+import { AggregateArrayParamType, AggregateCommand, AggregateCommandLike, AggregateCommandType, AggregateMixParamType, AggregateNumberParamType, AggregateObjectParamType, AggregateSeachOptions, AggregateStringParamType } from './interface';
 /**
  * @description MySQl 聚合命令
  */
 declare class MySQLAggregateCommand<T extends object = object> implements AggregateCommand<T> {
-    $mode: AggregateCommandMode;
+    $mode: CommandMode;
     $type: AggregateCommandType | undefined;
     $value: (AggregateMixParamType<T> | AggregateMixParamType<T>[] | AggregateSeachOptions)[] | undefined;
     constructor(value?: (AggregateMixParamType<T> | AggregateMixParamType<T>[] | AggregateSeachOptions)[], type?: AggregateCommandType);
@@ -156,6 +157,16 @@ declare class MySQLAggregateCommand<T extends object = object> implements Aggreg
     json_pretty<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
     json_quote<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
     json_unquote<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    regexp<P extends [
+        AggregateStringParamType<T>,
+        AggregateStringParamType<T>,
+        AggregateStringParamType<T>
+    ]>(...values: P): AggregateCommand<T>;
+    like<P extends [
+        AggregateStringParamType<T>,
+        AggregateStringParamType<T>,
+        AggregateStringParamType<T>
+    ]>(...values: P): AggregateCommand<T>;
 }
 declare const $: MySQLAggregateCommand<object>;
 export { $, MySQLAggregateCommand };

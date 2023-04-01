@@ -16018,6 +16018,24 @@ const tinyToBoolean = (fields, results) => {
         });
     });
 };
+/**
+ * @description 是聚合操作
+ * @param value
+ * @returns
+ */
+const isAggregateCommand = (value) => {
+    return (typeOf.objStructMatch(value, ['$value', '$type']) &&
+        value.$mode === 'aggregate');
+};
+/**
+ * @description 是命令操作
+ * @param value
+ * @returns
+ */
+const isCommand = (value) => {
+    return (typeOf.objStructMatch(value, ['$value', '$type']) &&
+        value.$mode === 'command');
+};
 
 /**
  * @description 无类型
@@ -16372,7 +16390,7 @@ var AggregateConditionType;
     AggregateConditionType["IFNULL"] = "ifNull";
 })(AggregateConditionType || (AggregateConditionType = {}));
 /**
- * @description 条件操作符
+ * @description json操作符
  */
 var AggregateJsonType;
 (function (AggregateJsonType) {
@@ -16487,6 +16505,20 @@ var AggregateJsonType;
      */
     AggregateJsonType["UNQUOTE"] = "json_unquote";
 })(AggregateJsonType || (AggregateJsonType = {}));
+/**
+ * @description 匹配操作符
+ */
+var AggregateMatchType;
+(function (AggregateMatchType) {
+    /**
+     * @description 正则匹配
+     */
+    AggregateMatchType["REGEXP"] = "regexp";
+    /**
+     * @description 模糊匹配
+     */
+    AggregateMatchType["LIKE"] = "like";
+})(AggregateMatchType || (AggregateMatchType = {}));
 
 /**
  * @description MySQl 聚合命令
@@ -16751,6 +16783,12 @@ class MySQLAggregateCommand {
     json_unquote(...values) {
         return new MySQLAggregateCommand(values, AggregateJsonType.UNQUOTE);
     }
+    regexp(...values) {
+        return new MySQLAggregateCommand(values, AggregateMatchType.REGEXP);
+    }
+    like(...values) {
+        return new MySQLAggregateCommand(values, AggregateMatchType.LIKE);
+    }
 }
 const $ = new MySQLAggregateCommand();
 
@@ -16780,10 +16818,10 @@ class MySQLRegExpLike {
  */
 class MySQLAggregateCommandClip {
     aggrControllerClip(aggregate) {
-        // 类型 模式
+        // 类型
         const { $type } = aggregate;
-        if (!typeOf.objStructMatch(aggregate, ['$value', '$type']) ||
-            aggregate.$mode !== 'aggregate') {
+        // 非AggregateCommand 类型
+        if (!isAggregateCommand(aggregate)) {
             throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, `aggregate must be a 'AggregateCommandLike'`);
         }
         // 布尔操作符
@@ -16976,12 +17014,17 @@ class MySQLAggregateCommandClip {
         if ($type === AggregateJsonType.ARRAY_INSERT) {
             return this.json_array_insert(aggregate);
         }
+        if ($type === AggregateMatchType.REGEXP) {
+            return this.regexp(aggregate);
+        }
+        if ($type === AggregateMatchType.LIKE) {
+            return this.like(aggregate);
+        }
         throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, `aggragte.type don't exist`);
     }
     aggrValueClip(value) {
         // AggregateCommand 类型
-        if (typeOf.objStructMatch(value, ['$value', '$type']) &&
-            value.$mode === 'aggregate') {
+        if (isAggregateCommand(value)) {
             return this.aggrControllerClip(value);
         }
         // 字符键表达式
@@ -17069,7 +17112,7 @@ class MySQLAggregateCommandClip {
         const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
         // null
         if (args[1] === 'null') {
-            return `${args[0]} is ${args[1]}`;
+            return `(${args[0]} is ${args[1]})`;
         }
         return `(${args[0]} ${symbol} ${args[1]})`;
     }
@@ -17504,6 +17547,26 @@ class MySQLAggregateCommandClip {
     json_unquote(aggregate) {
         return '';
     }
+    regexp(aggregate) {
+        const { $value: rawArgs } = aggregate;
+        const key = rawArgs[0];
+        const regexp = rawArgs[1];
+        const options = rawArgs[2];
+        return sqlClip.regexClip(key, {
+            $regex: regexp,
+            $options: options,
+        });
+    }
+    like(aggregate) {
+        const { $value: rawArgs } = aggregate;
+        const key = rawArgs[0];
+        const like = rawArgs[1];
+        const options = rawArgs[2];
+        return sqlClip.likeClip(key, {
+            $like: like,
+            $options: options,
+        });
+    }
 }
 const sqlAggregateCommandClip = new MySQLAggregateCommandClip();
 
@@ -17604,8 +17667,7 @@ var CommandCompareFilterType;
 class MySQLCommandClip {
     cmdValueClip(key, value) {
         // Command 类型
-        if (typeOf.objStructMatch(value, ['$value', '$type']) &&
-            value.$mode === 'command') {
+        if (isCommand(value)) {
             return this.cmdControllerClip(key, value);
         }
         // AggregateCommand 类型
@@ -17639,10 +17701,10 @@ class MySQLCommandClip {
         return '';
     }
     cmdControllerClip(key, command) {
-        // 类型 值 模式
+        // 类型
         const { $type } = command;
-        if (!typeOf.objStructMatch(command, ['$value', '$type']) ||
-            command.$mode !== 'command') {
+        // 非 Command 类型
+        if (!isCommand(command)) {
             throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, `command must be a 'CommandLike'`);
         }
         // 逻辑操作符
@@ -17897,10 +17959,8 @@ class MySQLClip {
             // 字段数组
             const fieldKeys = Object.keys(newfields);
             fieldKeys.forEach((fieldKey) => {
-                const { $mode } = newfields[fieldKey];
                 // 聚合命令操作
-                if (typeOf.objStructMatch(newfields[fieldKey], ['$value', '$type']) &&
-                    $mode === 'aggregate') {
+                if (isAggregateCommand(newfields[fieldKey])) {
                     const aggregate = newfields[fieldKey];
                     const asKey = this.keyClip(fieldKey);
                     newfieldsClip.push(`${sqlAggregateCommandClip.aggrControllerClip(aggregate)} as ${asKey}`);
@@ -18022,6 +18082,16 @@ class MySQLClip {
         if (typeOf.isNotEmptyObj(where)) {
             // 前缀
             whereClip.push(' where ');
+            console.log('where', where);
+            //  Aggregate命令
+            if (typeOf.objStructMatch(where, ['$value', '$type'])) {
+                if (where.$mode !== 'aggregate') {
+                    // 报错：ARGUMENTS_TYPE_ERROR
+                    throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, 'In whereClip, the type of where must be AggregateCommandLike');
+                }
+                whereClip.push(sqlAggregateCommandClip.aggrControllerClip(where));
+                return whereClip.join('');
+            }
             // 字段数组
             const fieldKeys = Object.keys(where);
             whereClip.push(fieldKeys
@@ -18036,13 +18106,10 @@ class MySQLClip {
                     return this.regexClip(key, where[key]);
                 }
                 // Command 命令
-                if (typeOf.objStructMatch(where[key], ['$value', '$type'])) {
+                if (isCommand(where[key])) {
                     // 命令操作
                     const newWhere = where[key];
-                    const { $mode } = newWhere;
-                    if ($mode === 'command') {
-                        return sqlCommandClip.cmdControllerClip(key, newWhere);
-                    }
+                    return sqlCommandClip.cmdControllerClip(key, newWhere);
                 }
                 // 字段
                 const fieldKey = this.keyClip(key);
@@ -18067,7 +18134,7 @@ class MySQLClip {
                     return `binary ${fieldKey} = ${mysqlExports.escape(where[key])}`;
                 }
                 // 报错：ARGUMENTS_TYPE_ERROR
-                throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, 'In whereClip, a argument type must be number, string, boolean, null, RegExp, Command, SQLLike or SQLRegex');
+                throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, 'In whereClip, where.[key] must be number, string, boolean, null, RegExp, CommandLike, AggregateCommandLike, SQLLike or SQLRegex');
             })
                 .join(' and '));
         }
@@ -18084,57 +18151,65 @@ class MySQLClip {
         }
         return groupByClip.join('');
     }
-    havingClip(where) {
+    havingClip(having) {
         // having
         const havingClip = [];
-        if (typeOf.isNotEmptyObj(where)) {
+        if (typeOf.isNotEmptyObj(having)) {
             // 前缀
             havingClip.push(' having ');
+            console.log('having', having);
+            //  Aggregate命令
+            if (typeOf.objStructMatch(having, ['$value', '$type'])) {
+                if (having.$mode !== 'aggregate') {
+                    // 报错：ARGUMENTS_TYPE_ERROR
+                    throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, 'In havingClip, the type of having must be AggregateCommandLike');
+                }
+                havingClip.push(sqlAggregateCommandClip.aggrControllerClip(having));
+                return havingClip.join('');
+            }
             // 字段数组
-            const fieldKeys = Object.keys(where);
+            const fieldKeys = Object.keys(having);
             havingClip.push(fieldKeys
                 .map((key) => {
-                // 字段
-                const fieldKey = this.keyClip(key);
                 // SQLLike 模糊查询
-                if (typeOf.objStructMatch(where[key], ['$like', '$options'])) {
-                    const newWhere = where[key];
-                    const options = newWhere.$options.split('');
-                    if (options.includes('i')) {
-                        return `${fieldKey} like ${mysqlExports.escape(newWhere.$like)}`;
-                    }
-                    return `binary ${fieldKey} like ${mysqlExports.escape(newWhere.$like)}`;
+                if (typeOf.objStructMatch(having[key], ['$like', '$options'])) {
+                    return this.likeClip(key, having[key]);
                 }
-                // SQLRegex 正则表达式
-                if (typeOf.objStructMatch(where[key], ['$regex', '$options'])) {
-                    const newWhere = where[key];
-                    const options = newWhere.$options.split('');
-                    if (options.includes('i')) {
-                        return `${fieldKey} regexp ${mysqlExports.escape(newWhere.$regex)}`;
-                    }
-                    return `binary ${fieldKey} regexp ${mysqlExports.escape(newWhere.$regex)}`;
+                // 标准正则、SQLRegex 正则表达式
+                if (typeOf.objStructMatch(having[key], ['$regex', '$options']) ||
+                    typeOf.isRegx(having[key])) {
+                    return this.regexClip(key, having[key]);
                 }
                 // Command 命令
-                if (typeOf.objStructMatch(where[key], ['$value', '$type'])) {
+                if (isCommand(having[key])) {
                     // 命令操作
-                    const newWhere = where[key];
-                    const { $mode } = newWhere;
-                    if ($mode === 'command') {
-                        return sqlCommandClip.cmdControllerClip(key, newWhere);
-                    }
+                    const newHaving = having[key];
+                    return sqlCommandClip.cmdControllerClip(key, newHaving);
+                }
+                // 字段
+                const fieldKey = this.keyClip(key);
+                // 对象
+                if (typeOf.isObject(having[key])) {
+                    const value = sqlAggregateCommandClip.aggrControllerClip($.json_object(having[key]));
+                    return `${fieldKey} = ${value}`;
+                }
+                // 数组
+                if (typeOf.isArray(having[key])) {
+                    const value = sqlAggregateCommandClip.aggrControllerClip($.json_array(having[key]));
+                    return `${fieldKey} = ${value}`;
                 }
                 // null
-                if (typeOf.isNull(where[key])) {
+                if (typeOf.isNull(having[key])) {
                     return `binary ${fieldKey} is null`;
                 }
                 // number, string, boolean
-                if (typeOf.isNumber(where[key]) ||
-                    typeOf.isString(where[key]) ||
-                    typeOf.isBooloon(where[key])) {
-                    return `binary ${fieldKey} = ${mysqlExports.escape(where[key])}`;
+                if (typeOf.isNumber(having[key]) ||
+                    typeOf.isString(having[key]) ||
+                    typeOf.isBooloon(having[key])) {
+                    return `binary ${fieldKey} = ${mysqlExports.escape(having[key])}`;
                 }
                 // 报错：ARGUMENTS_TYPE_ERROR
-                throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, 'In havingClip, a argument type must be number, string, boolean, null, RegExp, Command, SQLLike or SQLRegex');
+                throw errHandler.createError(MySQLErrorType.ARGUMENTS_TYPE_ERROR, 'In havingClip, having.[key] must be number, string, boolean, null, RegExp, Command, SQLLike or SQLRegex');
             })
                 .join(' and '));
         }
@@ -18464,10 +18539,7 @@ class MySQLSelectGenerator {
         if (clipName === 'where') {
             if (typeOf.isNotEmptyObj(value)) {
                 // 初始化
-                this.$where = {};
-                for (const key in value) {
-                    this.$where[key] = value[key];
-                }
+                this.$where = value;
                 return this;
             }
             // 报错：SQLGENERATOR_PROPERTY_ERROR
@@ -19076,6 +19148,10 @@ class MySQLCollection {
     where(where) {
         // 存在字段
         if (typeOf.isNotEmptyObj(where)) {
+            // 命令类型
+            if (isAggregateCommand(where)) {
+                return this.create({ $where: where });
+            }
             const newWhere = {};
             for (const key in where) {
                 if (typeOf.isNotUndefined(where[key])) {

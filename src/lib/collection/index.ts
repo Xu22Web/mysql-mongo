@@ -1,9 +1,15 @@
 import { Connection, escape, FieldInfo, OkPacket, PoolConnection } from 'mysql';
 import { errHandler, MySQLErrorType } from '../../model/errorHandler';
-import { objectMerge, parseJson, tinyToBoolean } from '../../utils/handler';
+import {
+  isAggregateCommand,
+  objectMerge,
+  parseJson,
+  tinyToBoolean,
+} from '../../utils/utils';
 import typeOf from '../../utils/typeOf';
 import { MySQLAggregate } from '../aggregate';
 import { Aggregate } from '../aggregate/interface';
+import { CommandProps } from '../command/interface';
 import { Database, DatabaseType } from '../database/interface';
 import { sqlClip } from '../sql/sqlClip';
 import {
@@ -135,6 +141,10 @@ class MySQLCollection<T extends object> implements Collection<T> {
   where(where: Where<T>): Collection<T> {
     // 存在字段
     if (typeOf.isNotEmptyObj(where)) {
+      // 命令类型
+      if (isAggregateCommand(where)) {
+        return this.create({ $where: where });
+      }
       const newWhere: Where<T> = {};
       for (const key in where) {
         if (typeOf.isNotUndefined(where[<keyof Where<T>>key])) {

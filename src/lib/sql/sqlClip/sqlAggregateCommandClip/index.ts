@@ -1,8 +1,12 @@
 import { escape, escapeId } from 'mysql';
-import { sqlClip } from '..';
+import { sqlClip } from '../';
 import { errHandler, MySQLErrorType } from '../../../../model/errorHandler';
-import { getJsonKeyPath, isKey } from '../../../../utils/handler';
 import typeOf from '../../../../utils/typeOf';
+import {
+  getJsonKeyPath,
+  isAggregateCommand,
+  isKey,
+} from '../../../../utils/utils';
 import {
   AggregateAccumulationType,
   AggregateBooleanNegativeType,
@@ -15,13 +19,12 @@ import {
   AggregateConditionType,
   AggregateJsonType,
   AggregateKey,
+  AggregateMatchType,
   AggregateMixParamType,
   AggregateProps,
   AggregateStringType,
 } from '../../../aggregateCommand/interface';
-import { CommandLike } from '../../../command/interface';
-import { SQLJsonObject } from '../../sqlGenerator/interface';
-import { sqlCommandClip } from '../sqlCommandClip';
+import { SQLJsonObject, SQLLike, SQLRegex } from '../../sqlGenerator/interface';
 import { SQLAggregateCommandClip } from './interface';
 
 /**
@@ -29,12 +32,11 @@ import { SQLAggregateCommandClip } from './interface';
  */
 class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
   aggrControllerClip(aggregate: AggregateCommandLike): string {
-    // 类型 模式
+    // 类型
     const { $type } = aggregate;
-    if (
-      !typeOf.objStructMatch<AggregateProps>(aggregate, ['$value', '$type']) ||
-      aggregate.$mode !== 'aggregate'
-    ) {
+
+    // 非AggregateCommand 类型
+    if (!isAggregateCommand(aggregate)) {
       throw errHandler.createError(
         MySQLErrorType.ARGUMENTS_TYPE_ERROR,
         `aggregate must be a 'AggregateCommandLike'`
@@ -231,6 +233,12 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
     if ($type === AggregateJsonType.ARRAY_INSERT) {
       return this.json_array_insert(aggregate);
     }
+    if ($type === AggregateMatchType.REGEXP) {
+      return this.regexp(aggregate);
+    }
+    if ($type === AggregateMatchType.LIKE) {
+      return this.like(aggregate);
+    }
     throw errHandler.createError(
       MySQLErrorType.ARGUMENTS_TYPE_ERROR,
       `aggragte.type don't exist`
@@ -238,10 +246,7 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
   }
   aggrValueClip(value: AggregateMixParamType): string {
     // AggregateCommand 类型
-    if (
-      typeOf.objStructMatch<AggregateCommandLike>(value, ['$value', '$type']) &&
-      value.$mode === 'aggregate'
-    ) {
+    if (isAggregateCommand(value)) {
       return this.aggrControllerClip(value);
     }
     // 字符键表达式
@@ -331,7 +336,7 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
     const args = rawArgs.map((rawArg) => this.aggrValueClip(rawArg));
     // null
     if (args[1] === 'null') {
-      return `${args[0]} is ${args[1]}`;
+      return `(${args[0]} is ${args[1]})`;
     }
     return `(${args[0]} ${symbol} ${args[1]})`;
   }
@@ -773,6 +778,32 @@ class MySQLAggregateCommandClip implements SQLAggregateCommandClip {
   }
   json_unquote(aggregate: AggregateProps): string {
     return '';
+  }
+  regexp(aggregate: AggregateProps): string {
+    const { $value: rawArgs } = aggregate;
+    const key = rawArgs[0];
+    const regexp = rawArgs[1];
+    const options = rawArgs[2];
+    return sqlClip.regexClip(
+      <string>key,
+      <SQLRegex>{
+        $regex: regexp,
+        $options: options,
+      }
+    );
+  }
+  like(aggregate: AggregateProps): string {
+    const { $value: rawArgs } = aggregate;
+    const key = rawArgs[0];
+    const like = rawArgs[1];
+    const options = rawArgs[2];
+    return sqlClip.likeClip(
+      <string>key,
+      <SQLLike>{
+        $like: like,
+        $options: options,
+      }
+    );
   }
 }
 

@@ -1,6 +1,6 @@
 import defaultConfig from '../config';
 import { DatabaseConfig, DatabaseType } from '../lib/database/interface';
-import { objectMerge } from './handler';
+import { objectMerge } from './utils';
 /**
  * @description 构建配置
  * @param config

@@ -1,4 +1,4 @@
-import { valuesToArr } from '../../utils/handler';
+import { valuesToArr } from '../../utils/utils';
 import typeOf from '../../utils/typeOf';
 import { MySQLAggregateCommand } from '../aggregateCommand';
 import { AggregateCommand } from '../aggregateCommand/interface';

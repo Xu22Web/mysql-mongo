@@ -112,10 +112,7 @@ class MySQLSelectGenerator implements SelectGenerator {
     if (clipName === 'where') {
       if (typeOf.isNotEmptyObj(value)) {
         // 初始化
-        this.$where = {};
-        for (const key in value) {
-          this.$where[key] = (<SQLWhere>value)[key];
-        }
+        this.$where = <SQLWhere>value;
         return this;
       }
 

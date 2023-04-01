@@ -1,18 +1,17 @@
 import { escape, escapeId } from 'mysql';
 import { errHandler, MySQLErrorType } from '../../../model/errorHandler';
+import typeOf from '../../../utils/typeOf';
 import {
   getJsonKeyPath,
   getKey,
+  isAggregateCommand,
+  isCommand,
   isJsonKey,
   isKey,
-} from '../../../utils/handler';
-import typeOf from '../../../utils/typeOf';
+} from '../../../utils/utils';
 import { $ } from '../../aggregateCommand';
-import {
-  AggregateCommandLike,
-  AggregateProps,
-} from '../../aggregateCommand/interface';
-import { CommandProps } from '../../command/interface';
+import { AggregateCommandLike } from '../../aggregateCommand/interface';
+import { CommandLike } from '../../command/interface';
 import { MySQLRegExpLike } from '../sqlCondition/regExpLike';
 import {
   SQLAlias,
@@ -139,13 +138,9 @@ class MySQLClip implements SqlClip {
       const fieldKeys = Object.keys(newfields);
 
       fieldKeys.forEach((fieldKey) => {
-        const { $mode } = <AggregateCommandLike>newfields[fieldKey];
         // 聚合命令操作
-        if (
-          typeOf.objStructMatch(newfields[fieldKey], ['$value', '$type']) &&
-          $mode === 'aggregate'
-        ) {
-          const aggregate = <AggregateProps>newfields[fieldKey];
+        if (isAggregateCommand(newfields[fieldKey])) {
+          const aggregate = <AggregateCommandLike>newfields[fieldKey];
           const asKey = this.keyClip(fieldKey);
           newfieldsClip.push(
             `${sqlAggregateCommandClip.aggrControllerClip(
@@ -297,11 +292,26 @@ class MySQLClip implements SqlClip {
     if (typeOf.isNotEmptyObj(where)) {
       // 前缀
       whereClip.push(' where ');
+      console.log('where', where);
+      //  Aggregate命令
+      if (
+        typeOf.objStructMatch<AggregateCommandLike>(where, ['$value', '$type'])
+      ) {
+        if (where.$mode !== 'aggregate') {
+          // 报错：ARGUMENTS_TYPE_ERROR
+          throw errHandler.createError(
+            MySQLErrorType.ARGUMENTS_TYPE_ERROR,
+            'In whereClip, the type of where must be AggregateCommandLike'
+          );
+        }
+        whereClip.push(sqlAggregateCommandClip.aggrControllerClip(where));
+        return whereClip.join('');
+      }
       // 字段数组
       const fieldKeys = Object.keys(where);
       whereClip.push(
         fieldKeys
-          .map((key) => {
+          .map((key: string) => {
             // SQLLike 模糊查询
             if (typeOf.objStructMatch(where[key], ['$like', '$options'])) {
               return this.likeClip(key, <SQLLike>where[key]);
@@ -314,13 +324,13 @@ class MySQLClip implements SqlClip {
               return this.regexClip(key, <SQLRegex>where[key]);
             }
             // Command 命令
-            if (typeOf.objStructMatch(where[key], ['$value', '$type'])) {
+            if (isCommand(where[key])) {
               // 命令操作
-              const newWhere = <CommandProps>where[key];
-              const { $mode } = newWhere;
-              if ($mode === 'command') {
-                return sqlCommandClip.cmdControllerClip(key, newWhere);
-              }
+              const newWhere = <CommandLike>where[key];
+              return sqlCommandClip.cmdControllerClip(
+                key,
+                <CommandLike>newWhere
+              );
             }
             // 字段
             const fieldKey = this.keyClip(key);
@@ -354,7 +364,7 @@ class MySQLClip implements SqlClip {
             // 报错：ARGUMENTS_TYPE_ERROR
             throw errHandler.createError(
               MySQLErrorType.ARGUMENTS_TYPE_ERROR,
-              'In whereClip, a argument type must be number, string, boolean, null, RegExp, Command, SQLLike or SQLRegex'
+              'In whereClip, where.[key] must be number, string, boolean, null, RegExp, CommandLike, AggregateCommandLike, SQLLike or SQLRegex'
             );
           })
           .join(' and ')
@@ -375,62 +385,81 @@ class MySQLClip implements SqlClip {
     }
     return groupByClip.join('');
   }
-  havingClip(where?: SQLHaving): string {
+  havingClip(having?: SQLHaving): string {
     // having
     const havingClip: string[] = [];
-    if (typeOf.isNotEmptyObj(where)) {
+    if (typeOf.isNotEmptyObj(having)) {
       // 前缀
       havingClip.push(' having ');
+      console.log('having', having);
+      //  Aggregate命令
+      if (
+        typeOf.objStructMatch<AggregateCommandLike>(having, ['$value', '$type'])
+      ) {
+        if (having.$mode !== 'aggregate') {
+          // 报错：ARGUMENTS_TYPE_ERROR
+          throw errHandler.createError(
+            MySQLErrorType.ARGUMENTS_TYPE_ERROR,
+            'In havingClip, the type of having must be AggregateCommandLike'
+          );
+        }
+        havingClip.push(sqlAggregateCommandClip.aggrControllerClip(having));
+        return havingClip.join('');
+      }
       // 字段数组
-      const fieldKeys = Object.keys(where);
+      const fieldKeys = Object.keys(having);
       havingClip.push(
         fieldKeys
           .map((key) => {
-            // 字段
-            const fieldKey = this.keyClip(key);
             // SQLLike 模糊查询
-            if (typeOf.objStructMatch(where[key], ['$like', '$options'])) {
-              const newWhere = <SQLLike>where[key];
-              const options = newWhere.$options.split('');
-              if (options.includes('i')) {
-                return `${fieldKey} like ${escape(newWhere.$like)}`;
-              }
-              return `binary ${fieldKey} like ${escape(newWhere.$like)}`;
+            if (typeOf.objStructMatch(having[key], ['$like', '$options'])) {
+              return this.likeClip(key, <SQLLike>having[key]);
             }
-            // SQLRegex 正则表达式
-            if (typeOf.objStructMatch(where[key], ['$regex', '$options'])) {
-              const newWhere = <SQLRegex>where[key];
-              const options = newWhere.$options.split('');
-              if (options.includes('i')) {
-                return `${fieldKey} regexp ${escape(newWhere.$regex)}`;
-              }
-              return `binary ${fieldKey} regexp ${escape(newWhere.$regex)}`;
+            // 标准正则、SQLRegex 正则表达式
+            if (
+              typeOf.objStructMatch(having[key], ['$regex', '$options']) ||
+              typeOf.isRegx(having[key])
+            ) {
+              return this.regexClip(key, <SQLRegex>having[key]);
             }
             // Command 命令
-            if (typeOf.objStructMatch(where[key], ['$value', '$type'])) {
+            if (isCommand(having[key])) {
               // 命令操作
-              const newWhere = <CommandProps>where[key];
-              const { $mode } = newWhere;
-              if ($mode === 'command') {
-                return sqlCommandClip.cmdControllerClip(key, newWhere);
-              }
+              const newHaving = <CommandLike>having[key];
+              return sqlCommandClip.cmdControllerClip(key, newHaving);
+            }
+            // 字段
+            const fieldKey = this.keyClip(key);
+            // 对象
+            if (typeOf.isObject(having[key])) {
+              const value = sqlAggregateCommandClip.aggrControllerClip(
+                $.json_object(<SQLJsonObject>having[key])
+              );
+              return `${fieldKey} = ${value}`;
+            }
+            // 数组
+            if (typeOf.isArray(having[key])) {
+              const value = sqlAggregateCommandClip.aggrControllerClip(
+                $.json_array(<SQLJsonArray>having[key])
+              );
+              return `${fieldKey} = ${value}`;
             }
             // null
-            if (typeOf.isNull(where[key])) {
+            if (typeOf.isNull(having[key])) {
               return `binary ${fieldKey} is null`;
             }
             // number, string, boolean
             if (
-              typeOf.isNumber(where[key]) ||
-              typeOf.isString(where[key]) ||
-              typeOf.isBooloon(where[key])
+              typeOf.isNumber(having[key]) ||
+              typeOf.isString(having[key]) ||
+              typeOf.isBooloon(having[key])
             ) {
-              return `binary ${fieldKey} = ${escape(where[key])}`;
+              return `binary ${fieldKey} = ${escape(having[key])}`;
             }
             // 报错：ARGUMENTS_TYPE_ERROR
             throw errHandler.createError(
               MySQLErrorType.ARGUMENTS_TYPE_ERROR,
-              'In havingClip, a argument type must be number, string, boolean, null, RegExp, Command, SQLLike or SQLRegex'
+              'In havingClip, having.[key] must be number, string, boolean, null, RegExp, Command, SQLLike or SQLRegex'
             );
           })
           .join(' and ')

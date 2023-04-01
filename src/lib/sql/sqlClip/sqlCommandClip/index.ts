@@ -1,8 +1,8 @@
 import { escape } from 'mysql';
-import { sqlClip } from '..';
+import { sqlClip } from '../';
 import { errHandler, MySQLErrorType } from '../../../../model/errorHandler';
-import { isKey } from '../../../../utils/handler';
 import typeOf from '../../../../utils/typeOf';
+import { isCommand, isKey } from '../../../../utils/utils';
 import { $ } from '../../../aggregateCommand';
 import { AggregateCommandLike } from '../../../aggregateCommand/interface';
 import {
@@ -22,12 +22,9 @@ import { SQLCommandClip } from './interface';
  * @description command clip 片段
  */
 class MySQLCommandClip implements SQLCommandClip {
-  cmdValueClip(key: string, value: CommandMixParamType): string | null {
+  cmdValueClip(key: string, value: CommandMixParamType): string {
     // Command 类型
-    if (
-      typeOf.objStructMatch<CommandLike>(value, ['$value', '$type']) &&
-      value.$mode === 'command'
-    ) {
+    if (isCommand(value)) {
       return this.cmdControllerClip(key, value);
     }
     // AggregateCommand 类型
@@ -69,12 +66,11 @@ class MySQLCommandClip implements SQLCommandClip {
     return '';
   }
   cmdControllerClip(key: string, command: CommandLike): string {
-    // 类型 值 模式
+    // 类型
     const { $type } = command;
-    if (
-      !typeOf.objStructMatch<CommandProps>(command, ['$value', '$type']) ||
-      command.$mode !== 'command'
-    ) {
+
+    // 非 Command 类型
+    if (!isCommand(command)) {
       throw errHandler.createError(
         MySQLErrorType.ARGUMENTS_TYPE_ERROR,
         `command must be a 'CommandLike'`

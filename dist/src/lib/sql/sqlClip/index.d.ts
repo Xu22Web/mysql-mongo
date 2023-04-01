@@ -13,7 +13,7 @@ declare class MySQLClip implements SqlClip {
     keyClip(key: string, json?: boolean): string;
     whereClip(where?: SQLWhere): string;
     groupByClip(groupBy?: SQLGroupBy): string;
-    havingClip(where?: SQLHaving): string;
+    havingClip(having?: SQLHaving): string;
     orderByClip(orderBy?: SQLOrderBy): string;
     limitClip(limit?: number, skip?: number): string;
     recordClip(record?: SQLRecord): string;

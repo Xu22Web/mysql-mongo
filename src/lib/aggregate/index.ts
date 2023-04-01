@@ -1,12 +1,12 @@
 import { errHandler, MySQLErrorType } from '../../model/errorHandler';
-import { isKey, parseJson, tinyToBoolean } from '../../utils/handler';
+import { isKey, parseJson, tinyToBoolean } from '../../utils/utils';
 import typeOf from '../../utils/typeOf';
 import { $ } from '../aggregateCommand';
 import {
   AggregateCommandLike,
   AggregateKey,
 } from '../aggregateCommand/interface';
-import { Collection, QueryResult, RowData } from '../collection/interface';
+import { Collection, QueryResult, ResultData } from '../collection/interface';
 import { MySQLSelectGenerator } from '../sql/sqlGenerator';
 import { SQLLimit, SQLSkip } from '../sql/sqlGenerator/interface';
 import { SelectGenerator } from '../sql/sqlGenerator/select/interface';
@@ -141,7 +141,7 @@ class MySQLAggregate<T extends object> implements Aggregate<T> {
     });
     return this;
   }
-  async end(): Promise<QueryResult<RowData<T[]>>> {
+  async end(): Promise<QueryResult<ResultData<T[]>>> {
     // 集合名
     const { $name } = this.$collection;
     // name
