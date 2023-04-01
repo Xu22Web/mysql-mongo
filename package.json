@@ -1,6 +1,6 @@
 {
   "name": "mysql-mongo",
-  "version": "1.0.0-alpha6",
+  "version": "1.0.0-alpha7",
   "description": "Using MySQL in the way of MongoDB in Nodejs",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",

@@ -94,12 +94,12 @@ class MySQLAggregateCommand<T extends object = object>
   ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateCompareSimpleType.CMP);
   }
-  eq<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
+  eq<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateCompareSimpleType.EQ);
   }
-  neq<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(
+  neq<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(
     ...values: P
   ): AggregateCommand<T> {
     return new MySQLAggregateCommand(values, AggregateCompareSimpleType.NEQ);

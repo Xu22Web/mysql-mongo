@@ -30,8 +30,8 @@ declare class MySQLAggregateCommand<T extends object = object> implements Aggreg
         ...AggregateMixParamType<T>[]
     ]>(...values: P): AggregateCommand<T>;
     cmp<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
-    eq<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
-    neq<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    eq<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
+    neq<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
     lt<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
     lte<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
     gt<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;

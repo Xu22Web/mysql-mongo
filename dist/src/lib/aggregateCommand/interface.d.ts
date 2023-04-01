@@ -630,12 +630,12 @@ export interface AggregateCommand<T extends object = object> extends AggregateCo
      * @description 比较操作符 等于
      * @param values
      */
-    eq<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    eq<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
     /**
      * @description 比较操作符 不等于
      * @param values
      */
-    neq<P extends [AggregateNumberParamType<T>, AggregateNumberParamType<T>]>(...values: P): AggregateCommand<T>;
+    neq<P extends [AggregateMixParamType<T>, AggregateMixParamType<T>]>(...values: P): AggregateCommand<T>;
     /**
      * @description 比较操作符 小于
      * @param values
