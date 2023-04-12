@@ -24,7 +24,7 @@ const db = database(
 );
 ```
 
-### 集合（数据库中的表）
+### 集合
 
 ```ts
 // 集合（数据库中的表 'test'）
@@ -126,7 +126,7 @@ await db
 // 等价于 'select `a`, `b` from `test` where `a` = 1 or `a` = 2 limit 0, 1'
 ```
 
-### 随机记录
+### 随机查询记录
 
 ```ts
 // 假设数据库表的字段
