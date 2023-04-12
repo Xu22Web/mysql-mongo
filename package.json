@@ -35,8 +35,8 @@
     "mysql": "^2.18.1"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^24.0.1",
-    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-commonjs": "^24.1.0",
+    "@rollup/plugin-node-resolve": "^15.0.2",
     "@types/mysql": "^2.15.21",
     "@types/node": "^18.15.11",
     "nodemon": "^2.0.22",
