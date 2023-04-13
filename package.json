@@ -1,13 +1,14 @@
 {
   "name": "mysql-mongo",
-  "version": "1.0.0-alpha12",
+  "version": "1.0.0-alpha13",
   "description": "Using MySQL in the way of MongoDB in Nodejs",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "./dist",
-    "LICENSE"
+    "dist",
+    "LICENSE",
+    "README.md"
   ],
   "scripts": {
     "build": "rollup -c rollup.config.js",

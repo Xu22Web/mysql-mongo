@@ -348,8 +348,8 @@ function requireCharsets () {
 		exports.UTF16LE  = exports.UTF16LE_GENERAL_CI;
 		exports.UTF8     = exports.UTF8_GENERAL_CI;
 		exports.UTF8MB4  = exports.UTF8MB4_GENERAL_CI;
-		exports.UTF32    = exports.UTF32_GENERAL_CI;
-} (charsets));
+		exports.UTF32    = exports.UTF32_GENERAL_CI; 
+	} (charsets));
 	return charsets;
 }
 
@@ -1840,8 +1840,8 @@ function requireSsl_profiles () {
 		    + 'uboynxRgSae59jIlAK6Jrr6GWMwQRbgcaAlW\n'
 		    + '-----END CERTIFICATE-----\n'
 		  ]
-		};
-} (ssl_profiles));
+		}; 
+	} (ssl_profiles));
 	return ssl_profiles;
 }
 
@@ -4972,18 +4972,14 @@ var bignumber = /*#__PURE__*/Object.freeze({
 
 var require$$1 = /*@__PURE__*/getAugmentedNamespace(bignumber);
 
-var safeBufferExports = {};
-var safeBuffer = {
-  get exports(){ return safeBufferExports; },
-  set exports(v){ safeBufferExports = v; },
-};
+var safeBuffer = {exports: {}};
 
 /* eslint-disable node/no-deprecated-api */
 
 var hasRequiredSafeBuffer;
 
 function requireSafeBuffer () {
-	if (hasRequiredSafeBuffer) return safeBufferExports;
+	if (hasRequiredSafeBuffer) return safeBuffer.exports;
 	hasRequiredSafeBuffer = 1;
 	(function (module, exports) {
 		var buffer = require$$0$1;
@@ -5046,9 +5042,9 @@ function requireSafeBuffer () {
 		    throw new TypeError('Argument must be a number')
 		  }
 		  return buffer.SlowBuffer(size)
-		};
-} (safeBuffer, safeBufferExports));
-	return safeBufferExports;
+		}; 
+	} (safeBuffer, safeBuffer.exports));
+	return safeBuffer.exports;
 }
 
 var BufferList_1;
@@ -6000,8 +5996,8 @@ function requireTypes () {
 		exports[252] = 'BLOB';
 		exports[253] = 'VAR_STRING';
 		exports[254] = 'STRING';
-		exports[255] = 'GEOMETRY';
-} (types));
+		exports[255] = 'GEOMETRY'; 
+	} (types));
 	return types;
 }
 
@@ -9147,8 +9143,8 @@ function requireErrors () {
 		exports[3227] = 'ER_XA_REPLICATION_FILTERS';
 		exports[3228] = 'ER_CANT_OPEN_ERROR_LOG';
 		exports[3229] = 'ER_GROUPING_ON_TIMESTAMP_IN_DST';
-		exports[3230] = 'ER_CANT_START_SERVER_NAMED_PIPE';
-} (errors));
+		exports[3230] = 'ER_CANT_START_SERVER_NAMED_PIPE'; 
+	} (errors));
 	return errors;
 }
 
@@ -9503,8 +9499,8 @@ function requireAuth () {
 		       + (buffer[offset + 1] << 16)
 		       + (buffer[offset + 2] << 8)
 		       + (buffer[offset + 3]);
-		};
-} (Auth));
+		}; 
+	} (Auth));
 	return Auth;
 }
 
@@ -9812,22 +9808,14 @@ function requireServer_status () {
 	return server_status;
 }
 
-var readableExports = {};
-var readable = {
-  get exports(){ return readableExports; },
-  set exports(v){ readableExports = v; },
-};
+var readable = {exports: {}};
 
-var processNextickArgsExports = {};
-var processNextickArgs = {
-  get exports(){ return processNextickArgsExports; },
-  set exports(v){ processNextickArgsExports = v; },
-};
+var processNextickArgs = {exports: {}};
 
 var hasRequiredProcessNextickArgs;
 
 function requireProcessNextickArgs () {
-	if (hasRequiredProcessNextickArgs) return processNextickArgsExports;
+	if (hasRequiredProcessNextickArgs) return processNextickArgs.exports;
 	hasRequiredProcessNextickArgs = 1;
 
 	if (typeof process === 'undefined' ||
@@ -9872,7 +9860,7 @@ function requireProcessNextickArgs () {
 	    });
 	  }
 	}
-	return processNextickArgsExports;
+	return processNextickArgs.exports;
 }
 
 var isarray;
@@ -9889,21 +9877,14 @@ function requireIsarray () {
 	return isarray;
 }
 
-var streamExports = {};
-var stream = {
-  get exports(){ return streamExports; },
-  set exports(v){ streamExports = v; },
-};
-
+var stream;
 var hasRequiredStream;
 
 function requireStream () {
-	if (hasRequiredStream) return streamExports;
+	if (hasRequiredStream) return stream;
 	hasRequiredStream = 1;
-	(function (module) {
-		module.exports = require$$0$3;
-} (stream));
-	return streamExports;
+	stream = require$$0$3;
+	return stream;
 }
 
 var util = {};
@@ -10023,22 +10004,14 @@ function requireUtil () {
 	return util;
 }
 
-var inheritsExports = {};
-var inherits = {
-  get exports(){ return inheritsExports; },
-  set exports(v){ inheritsExports = v; },
-};
+var inherits = {exports: {}};
 
-var inherits_browserExports = {};
-var inherits_browser = {
-  get exports(){ return inherits_browserExports; },
-  set exports(v){ inherits_browserExports = v; },
-};
+var inherits_browser = {exports: {}};
 
 var hasRequiredInherits_browser;
 
 function requireInherits_browser () {
-	if (hasRequiredInherits_browser) return inherits_browserExports;
+	if (hasRequiredInherits_browser) return inherits_browser.exports;
 	hasRequiredInherits_browser = 1;
 	if (typeof Object.create === 'function') {
 	  // implementation from standard node.js 'util' module
@@ -10067,38 +10040,32 @@ function requireInherits_browser () {
 	    }
 	  };
 	}
-	return inherits_browserExports;
+	return inherits_browser.exports;
 }
 
 var hasRequiredInherits;
 
 function requireInherits () {
-	if (hasRequiredInherits) return inheritsExports;
+	if (hasRequiredInherits) return inherits.exports;
 	hasRequiredInherits = 1;
-	(function (module) {
-		try {
-		  var util = require('util');
-		  /* istanbul ignore next */
-		  if (typeof util.inherits !== 'function') throw '';
-		  module.exports = util.inherits;
-		} catch (e) {
-		  /* istanbul ignore next */
-		  module.exports = requireInherits_browser();
-		}
-} (inherits));
-	return inheritsExports;
+	try {
+	  var util = require('util');
+	  /* istanbul ignore next */
+	  if (typeof util.inherits !== 'function') throw '';
+	  inherits.exports = util.inherits;
+	} catch (e) {
+	  /* istanbul ignore next */
+	  inherits.exports = requireInherits_browser();
+	}
+	return inherits.exports;
 }
 
-var BufferListExports = {};
-var BufferList = {
-  get exports(){ return BufferListExports; },
-  set exports(v){ BufferListExports = v; },
-};
+var BufferList = {exports: {}};
 
 var hasRequiredBufferList;
 
 function requireBufferList () {
-	if (hasRequiredBufferList) return BufferListExports;
+	if (hasRequiredBufferList) return BufferList.exports;
 	hasRequiredBufferList = 1;
 	(function (module) {
 
@@ -10178,9 +10145,9 @@ function requireBufferList () {
 		    var obj = util.inspect({ length: this.length });
 		    return this.constructor.name + ' ' + obj;
 		  };
-		}
-} (BufferList));
-	return BufferListExports;
+		} 
+	} (BufferList));
+	return BufferList.exports;
 }
 
 var destroy_1;
@@ -12535,7 +12502,7 @@ function require_stream_passthrough () {
 var hasRequiredReadable;
 
 function requireReadable () {
-	if (hasRequiredReadable) return readableExports;
+	if (hasRequiredReadable) return readable.exports;
 	hasRequiredReadable = 1;
 	(function (module, exports) {
 		var Stream = require$$0$3;
@@ -12556,9 +12523,9 @@ function requireReadable () {
 		  exports.Duplex = require_stream_duplex();
 		  exports.Transform = require_stream_transform();
 		  exports.PassThrough = require_stream_passthrough();
-		}
-} (readable, readableExports));
-	return readableExports;
+		} 
+	} (readable, readable.exports));
+	return readable.exports;
 }
 
 var Query_1;
@@ -13593,24 +13560,12 @@ function requireProtocol () {
 	return Protocol_1;
 }
 
-var SqlStringExports = {};
-var SqlString$1 = {
-  get exports(){ return SqlStringExports; },
-  set exports(v){ SqlStringExports = v; },
-};
-
-var sqlstringExports = {};
-var sqlstring = {
-  get exports(){ return sqlstringExports; },
-  set exports(v){ sqlstringExports = v; },
-};
-
-var SqlString = {};
+var SqlString$1 = {};
 
 var hasRequiredSqlString$1;
 
 function requireSqlString$1 () {
-	if (hasRequiredSqlString$1) return SqlString;
+	if (hasRequiredSqlString$1) return SqlString$1;
 	hasRequiredSqlString$1 = 1;
 	(function (exports) {
 		var SqlString  = exports;
@@ -13849,31 +13804,29 @@ function requireSqlString$1 () {
 		    return (m[1] === '-' ? -1 : 1) * (parseInt(m[2], 10) + ((m[3] ? parseInt(m[3], 10) : 0) / 60)) * 60;
 		  }
 		  return false;
-		}
-} (SqlString));
-	return SqlString;
+		} 
+	} (SqlString$1));
+	return SqlString$1;
 }
 
+var sqlstring;
 var hasRequiredSqlstring;
 
 function requireSqlstring () {
-	if (hasRequiredSqlstring) return sqlstringExports;
+	if (hasRequiredSqlstring) return sqlstring;
 	hasRequiredSqlstring = 1;
-	(function (module) {
-		module.exports = requireSqlString$1();
-} (sqlstring));
-	return sqlstringExports;
+	sqlstring = requireSqlString$1();
+	return sqlstring;
 }
 
+var SqlString;
 var hasRequiredSqlString;
 
 function requireSqlString () {
-	if (hasRequiredSqlString) return SqlStringExports;
+	if (hasRequiredSqlString) return SqlString;
 	hasRequiredSqlString = 1;
-	(function (module) {
-		module.exports = requireSqlstring();
-} (SqlString$1));
-	return SqlStringExports;
+	SqlString = requireSqlstring();
+	return SqlString;
 }
 
 var Connection_1;
@@ -14831,16 +14784,12 @@ function requirePoolConfig () {
 	return PoolConfig_1;
 }
 
-var PoolSelectorExports = {};
-var PoolSelector = {
-  get exports(){ return PoolSelectorExports; },
-  set exports(v){ PoolSelectorExports = v; },
-};
+var PoolSelector = {exports: {}};
 
 var hasRequiredPoolSelector;
 
 function requirePoolSelector () {
-	if (hasRequiredPoolSelector) return PoolSelectorExports;
+	if (hasRequiredPoolSelector) return PoolSelector.exports;
 	hasRequiredPoolSelector = 1;
 	/**
 	 * PoolSelector
@@ -14872,7 +14821,7 @@ function requirePoolSelector () {
 	    return clusterIds[0];
 	  };
 	};
-	return PoolSelectorExports;
+	return PoolSelector.exports;
 }
 
 var PoolNamespace_1;
@@ -15483,8 +15432,8 @@ function requireMysql () {
 		  Classes[className] = Class;
 
 		  return Class;
-		}
-} (mysql));
+		} 
+	} (mysql));
 	return mysql;
 }
 
@@ -19158,13 +19107,13 @@ class MySQLCollection {
     field(filter) {
         // 存在字段
         if (typeOf.isNotEmptyObj(filter)) {
-            const newFields = {};
+            const fields = {};
             for (const key in filter) {
                 if (typeOf.isBooloon(filter[key])) {
-                    newFields[key] = filter[key];
+                    fields[key] = filter[key];
                 }
             }
-            return this.create({ $filter: newFields });
+            return this.create({ $filter: fields });
         }
         throw errHandler.createError(MySQLErrorType.COLLECTION_PROPERTY_ERROR, `In MySQLCollection, property 'field' type must be Filter`);
     }
@@ -19280,9 +19229,15 @@ class MySQLCollection {
         try {
             let $fields = [];
             if (typeOf.isNotEmptyObj($filter)) {
-                // 字段值
-                const fields = await this.getFields($filter);
-                $fields = fields.map((field) => field.COLUMN_NAME);
+                const entries = Object.entries($filter);
+                if (entries.every((field) => field[1])) {
+                    $fields = entries.map((field) => field[0]);
+                }
+                else {
+                    // 字段值
+                    const fields = await this.getFields($filter);
+                    $fields = fields.map((field) => field.COLUMN_NAME);
+                }
             }
             // 字段筛选
             const selectGen = new MySQLSelectGenerator({
