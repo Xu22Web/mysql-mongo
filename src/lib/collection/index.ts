@@ -1,15 +1,14 @@
 import { Connection, escape, FieldInfo, OkPacket, PoolConnection } from 'mysql';
 import { errHandler, MySQLErrorType } from '../../model/errorHandler';
+import typeOf from '../../utils/typeOf';
 import {
   isAggregateCommand,
   objectMerge,
   parseJson,
   tinyToBoolean,
 } from '../../utils/utils';
-import typeOf from '../../utils/typeOf';
 import { MySQLAggregate } from '../aggregate';
 import { Aggregate } from '../aggregate/interface';
-import { CommandProps } from '../command/interface';
 import { Database, DatabaseType } from '../database/interface';
 import { sqlClip } from '../sql/sqlClip';
 import {
@@ -125,13 +124,13 @@ class MySQLCollection<T extends object> implements Collection<T> {
   field(filter: Filter<T>): Collection<T> {
     // 存在字段
     if (typeOf.isNotEmptyObj(filter)) {
-      const newFields: Filter<T> = {};
+      const fields: Filter<T> = {};
       for (const key in filter) {
         if (typeOf.isBooloon(filter[<keyof Filter<T>>key])) {
-          newFields[<keyof Filter<T>>key] = filter[<keyof Filter<T>>key];
+          fields[<keyof Filter<T>>key] = filter[<keyof Filter<T>>key];
         }
       }
-      return this.create({ $filter: newFields });
+      return this.create({ $filter: fields });
     }
     throw errHandler.createError(
       MySQLErrorType.COLLECTION_PROPERTY_ERROR,
@@ -273,9 +272,14 @@ class MySQLCollection<T extends object> implements Collection<T> {
     try {
       let $fields: string[] = [];
       if (typeOf.isNotEmptyObj($filter)) {
-        // 字段值
-        const fields = await this.getFields($filter);
-        $fields = fields.map((field) => field.COLUMN_NAME);
+        const entries = Object.entries($filter);
+        if (entries.every((field) => field[1])) {
+          $fields = entries.map((field) => field[0]);
+        } else {
+          // 字段值
+          const fields = await this.getFields($filter);
+          $fields = fields.map((field) => field.COLUMN_NAME);
+        }
       }
       // 字段筛选
       const selectGen = new MySQLSelectGenerator({

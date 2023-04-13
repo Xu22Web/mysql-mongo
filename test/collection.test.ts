@@ -38,7 +38,7 @@ describe.skip('collection', () => {
         })
         .field({
           b: true,
-          '$json.c': false,
+          '$json.c': true,
         })
         .limit(1)
         .skip(1)
@@ -92,11 +92,11 @@ describe.skip('collection', () => {
     ).toMatchInlineSnapshot(`
       {
         "result": OkPacket {
-          "affectedRows": 1,
+          "affectedRows": 2,
           "changedRows": 1,
           "fieldCount": 0,
           "insertId": 0,
-          "message": "(Rows matched: 1  Changed: 1  Warnings: 0",
+          "message": "(Rows matched: 2  Changed: 1  Warnings: 0",
           "protocol41": true,
           "serverStatus": 34,
           "warningCount": 0,
@@ -149,7 +149,7 @@ describe.skip('collection', () => {
     ).toMatchInlineSnapshot(`
       {
         "result": RowDataPacket {
-          "total": 0,
+          "total": 1,
         },
         "status": true,
       }
@@ -167,10 +167,24 @@ describe.skip('collection', () => {
         .get()
     ).toMatchInlineSnapshot(`
       {
-        "result": [],
-        "status": false,
+        "result": [
+          RowDataPacket {
+            "_id": "0.8ce88990149b9",
+            "_timeStamp": null,
+            "a": 0,
+            "b": 0,
+            "c": "1",
+            "d": null,
+            "json": {
+              "b": 1,
+              "c": [],
+            },
+            "test": null,
+          },
+        ],
+        "status": true,
       }
-      `);
+    `);
     it('remove', async () => {
       expect(
         await db
